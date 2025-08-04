@@ -8,7 +8,7 @@ const CustomLightTheme = {
   ...MD3LightTheme,
   colors: {
     ...MD3LightTheme.colors,
-    primary: '#78c2a4',
+    primary: '#80C9A0',
     onPrimary: '#212121',
     primaryContainer: '#d1e7dd',
     onPrimaryContainer: '#212121',
