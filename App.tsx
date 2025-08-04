@@ -96,10 +96,10 @@ function TabNavigator() {
   return (
     <Tab.Navigator screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: theme.text,
-        tabBarInactiveTintColor: theme.text,
+        tabBarActiveTintColor: theme.colors.onSurface,
+        tabBarInactiveTintColor: theme.colors.onSurface,
         tabBarStyle: {
-          backgroundColor: theme.background,
+          backgroundColor: theme.colors.background,
           marginTop: 10,
           borderTopWidth: 0,
           elevation: 0,
@@ -116,7 +116,7 @@ function TabNavigator() {
             const isSelected = currentRouteName === "Home";
             return (
               <TabButton {...props} isSelected={isSelected}>
-                <Ionicons name="home" size={24} color={theme.text} />
+                <Ionicons name="home" size={24} color={theme.colors.onSurface} />
               </TabButton>
             );
           },
@@ -133,7 +133,7 @@ function TabNavigator() {
             const isSelected = currentRouteName === "LibraryStack";
             return (
               <TabButton {...props} isSelected={isSelected}>
-                <FontAwesome name="book" size={24} color={theme.text} />
+                <FontAwesome name="book" size={24} color={theme.colors.onSurface} />
               </TabButton>
             );
           },
@@ -150,7 +150,7 @@ function TabNavigator() {
             const isSelected = currentRouteName === "PageLogsStack";
             return (
               <TabButton {...props} isSelected={isSelected}>
-                <Ionicons name="calendar" size={24} color={theme.text} />
+                <Ionicons name="calendar" size={24} color={theme.colors.onSurface} />
               </TabButton>
             );
           },
@@ -167,7 +167,7 @@ function TabNavigator() {
             const isSelected = currentRouteName === "Settings";
             return (
               <TabButton {...props} isSelected={isSelected}>
-                <Ionicons name="settings-sharp" size={24} color={theme.text} />
+                <Ionicons name="settings-sharp" size={24} color={theme.colors.onSurface} />
               </TabButton>
             );
           },
@@ -189,7 +189,7 @@ const TabButton = (props: any) => {
           height: 3,
           borderRadius: 15,
           width: 30,
-          backgroundColor: isSelected ? theme.text : 'transparent',
+                    backgroundColor: isSelected ? theme.colors.onSurface : 'transparent',
           marginTop: 5,
         }}
       />
@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
 
 const ThemeAwareStatusBar = () => {
   const { theme } = useTheme();
-  return <StatusBar style={theme.type === 'dark' ? 'light' : 'dark'} />;
+  return <StatusBar style={theme.dark ? 'light' : 'dark'} />;
 };
 
 const AppContent = () => {
@@ -216,7 +216,7 @@ const AppContent = () => {
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={{ flex: 1, paddingTop: insets.top, backgroundColor: theme.background }}>
+    <View style={{ flex: 1, paddingTop: insets.top, backgroundColor: theme.colors.background }}>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <SQLiteProvider databaseName="RibbonDB.db" useSuspense>
           <NavigationContainer>

@@ -1,32 +1,11 @@
 import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 import { Appearance } from 'react-native';
 import * as FileSystem from 'expo-file-system';
-
-// Define the themes
-const LightTheme = {
-  type: 'light',
-  background: '#FFFFFF',
-  text: '#000000',
-  card: '#F7F7F7',
-  border: 'rgba(0, 0, 0, 0.2)',
-  buttonBackground: '#000000',
-  buttonText: '#FFFFFF',
-
-};
-
-const DarkTheme = {
-  type: 'dark',
-  background: '#121212',
-  text: 'white',
-  card: '#1E1E1E',
-  border: 'rgba(125, 125, 125, 0.1)',
-  buttonBackground: 'white',
-  buttonText: 'black',
-};
+import { MD3LightTheme, MD3DarkTheme } from 'react-native-paper';
 
 // Context for theme management
 const ThemeContext = createContext({
-  theme: LightTheme, // Default theme
+  theme: MD3LightTheme, // Default theme
   toggleTheme: () => {}, // Default placeholder function
 });
 
@@ -35,7 +14,7 @@ type ThemeProviderProps = {
 };
 
 export const ThemeProvider = ({ children }: ThemeProviderProps) => {
-  const [theme, setTheme] = useState(LightTheme);
+  const [theme, setTheme] = useState(MD3LightTheme);
 
   const themeFilePath = `${FileSystem.documentDirectory}theme.json`;
 
@@ -43,19 +22,19 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
     const loadTheme = async () => {
       try {
         const storedTheme = await FileSystem.readAsStringAsync(themeFilePath);
-        setTheme(storedTheme === 'dark' ? DarkTheme : LightTheme);
+        setTheme(storedTheme === 'dark' ? MD3DarkTheme : MD3LightTheme);
       } catch {
         const colorScheme = Appearance.getColorScheme();
-        setTheme(colorScheme === 'dark' ? DarkTheme : LightTheme);
+        setTheme(colorScheme === 'dark' ? MD3DarkTheme : MD3LightTheme);
       }
     };
     loadTheme();
   }, []);
 
   const toggleTheme = async () => {
-    const newTheme = theme === LightTheme ? DarkTheme : LightTheme;
+    const newTheme = theme === MD3LightTheme ? MD3DarkTheme : MD3LightTheme;
     setTheme(newTheme);
-    await FileSystem.writeAsStringAsync(themeFilePath, theme === LightTheme ? 'dark' : 'light');
+    await FileSystem.writeAsStringAsync(themeFilePath, theme === MD3LightTheme ? 'dark' : 'light');
   };
 
   return (
