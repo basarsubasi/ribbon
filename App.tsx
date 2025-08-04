@@ -9,8 +9,11 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
+
+
 import { SettingsProvider } from './context/SettingsContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
+import { FontAwesome, Ionicons } from '@expo/vector-icons';
 
 import Home from './screens/Home';
 import Library from './screens/library/Library';
@@ -20,7 +23,7 @@ import EditBook from './screens/library/EditBook';
 import ScanBarcode from './screens/library/ScanBarcode';
 import SearchBook from './screens/library/SearchBook';
 
-import PageLogs from './screens/page_logs/Calendar';
+import PageLogs from './screens/page_logs/PageLogs';
 import LogPages from './screens/page_logs/LogPages';
 import LogDetails from './screens/page_logs/LogDetails';
 import EditLog from './screens/page_logs/EditLog';
@@ -89,14 +92,71 @@ function PageLogsStackNavigator() {
 }
 
 function TabNavigator() {
+  const { theme } = useTheme();
   return (
     <Tab.Navigator screenOptions={{
-        headerShown: false, // Disable headers for all screens in this stack
+        headerShown: false,
+        tabBarActiveTintColor: theme.text,
+        tabBarInactiveTintColor: theme.text,
+        tabBarStyle: {
+          backgroundColor: theme.background,
+          marginTop: 10,
+          borderTopWidth: 0,
+          elevation: 0,
+          shadowOpacity: 0, },
       }}>
-      <Tab.Screen name="Home" component={Home} options={{ headerShown: false }} />
-      <Tab.Screen name="LibraryStack" component={LibraryStackNavigator} options={{ headerShown: false }} />
-      <Tab.Screen name="PageLogsStack" component={PageLogsStackNavigator} options={{ headerShown: false }} />
-      <Tab.Screen name="Settings" component={Settings} options={{ headerShown: false }} />
+      <Tab.Screen 
+        name="Home" 
+        component={Home} 
+        options={{
+          tabBarShowLabel: false,
+          tabBarIcon: ({ color, size, focused }) => (
+            <View style={{ alignItems: 'center' }}>
+              <Ionicons name="home" size={size} color={color} />
+              <View style={{ height: 2, width: 30, backgroundColor: focused ? color : 'transparent', marginTop: 2 }} />
+            </View>
+          ),
+        }}
+      />
+      <Tab.Screen 
+        name="LibraryStack" 
+        component={LibraryStackNavigator} 
+        options={{
+          tabBarShowLabel: false,
+          tabBarIcon: ({ color, size, focused }) => (
+            <View style={{ alignItems: 'center' }}>
+              <FontAwesome name="book" size={size} color={color} />
+              <View style={{ height: 2, width: 30, backgroundColor: focused ? color : 'transparent', marginTop: 2 }} />
+            </View>
+          ),
+        }}
+      />
+      <Tab.Screen
+       name="PageLogsStack"
+       component={PageLogsStackNavigator}
+       options={{
+          tabBarShowLabel: false,
+          tabBarIcon: ({ color, size, focused }) => (
+            <View style={{ alignItems: 'center' }}>
+              <Ionicons name="calendar" size={size} color={color} />
+              <View style={{ height: 2, width: 30, backgroundColor: focused ? color : 'transparent', marginTop: 2 }} />
+            </View>
+          ),
+        }} 
+       />
+      <Tab.Screen
+       name="Settings"
+       component={Settings}
+       options={{
+          tabBarShowLabel: false,
+          tabBarIcon: ({ color, size, focused }) => (
+            <View style={{ alignItems: 'center' }}>
+              <Ionicons name="settings-sharp" size={size} color={color} />
+              <View style={{ height: 2, width: 30, backgroundColor: focused ? color : 'transparent', marginTop: 2 }} />
+            </View>
+          ),
+        }}
+         />
     </Tab.Navigator>
   );
 }
