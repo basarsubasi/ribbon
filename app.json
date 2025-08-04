@@ -1,0 +1,49 @@
+{
+  "expo": {
+    "name": "Ribbon",
+    "slug": "ribbon",
+    "version": "0.0.1",
+    "orientation": "portrait",
+    "icon": "./assets/appicon.png",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/appicon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "bundleIdentifier": "com.basarsubasi.ribbon"
+    },
+    "android": {
+      "versionCode": 1, 
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/appicon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "tr.com.basarsubasi.ribbonbeta"
+    },
+
+    "web": {
+      "favicon": "./assets/appicon.png"
+    },
+
+
+    "plugins": [
+      "expo-sqlite",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 35,
+            "buildToolsVersion": "35.0.0"
+          }
+        }
+
+      ]
+
+
+    ],
+    "owner": "basarsubasi"
+  }
+}
