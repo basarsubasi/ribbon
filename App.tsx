@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator, Pressable, StyleSheet } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import { SQLiteProvider } from 'expo-sqlite';
 import { Asset } from 'expo-asset';
@@ -105,61 +105,106 @@ function TabNavigator() {
           elevation: 0,
           shadowOpacity: 0, },
       }}>
-      <Tab.Screen 
-        name="Home" 
-        component={Home} 
-        options={{
+      <Tab.Screen
+        name="Home"
+        component={Home}
+        options={({ navigation }) => ({
           tabBarShowLabel: false,
-          tabBarIcon: ({ color, size, focused }) => (
-            <View style={{ alignItems: 'center' }}>
-              <Ionicons name="home" size={size} color={color} />
-              <View style={{ height: 2, width: 30, backgroundColor: focused ? color : 'transparent', marginTop: 2 }} />
-            </View>
-          ),
-        }}
+          tabBarButton: (props) => {
+            const state = navigation.getState();
+            const currentRouteName = state.routes[state.index].name;
+            const isSelected = currentRouteName === "Home";
+            return (
+              <TabButton {...props} isSelected={isSelected}>
+                <Ionicons name="home" size={24} color={theme.text} />
+              </TabButton>
+            );
+          },
+        })}
       />
-      <Tab.Screen 
-        name="LibraryStack" 
-        component={LibraryStackNavigator} 
-        options={{
+      <Tab.Screen
+        name="LibraryStack"
+        component={LibraryStackNavigator}
+        options={({ navigation }) => ({
           tabBarShowLabel: false,
-          tabBarIcon: ({ color, size, focused }) => (
-            <View style={{ alignItems: 'center' }}>
-              <FontAwesome name="book" size={size} color={color} />
-              <View style={{ height: 2, width: 30, backgroundColor: focused ? color : 'transparent', marginTop: 2 }} />
-            </View>
-          ),
-        }}
+          tabBarButton: (props) => {
+            const state = navigation.getState();
+            const currentRouteName = state.routes[state.index].name;
+            const isSelected = currentRouteName === "LibraryStack";
+            return (
+              <TabButton {...props} isSelected={isSelected}>
+                <FontAwesome name="book" size={24} color={theme.text} />
+              </TabButton>
+            );
+          },
+        })}
       />
       <Tab.Screen
        name="PageLogsStack"
        component={PageLogsStackNavigator}
-       options={{
+       options={({ navigation }) => ({
           tabBarShowLabel: false,
-          tabBarIcon: ({ color, size, focused }) => (
-            <View style={{ alignItems: 'center' }}>
-              <Ionicons name="calendar" size={size} color={color} />
-              <View style={{ height: 2, width: 30, backgroundColor: focused ? color : 'transparent', marginTop: 2 }} />
-            </View>
-          ),
-        }} 
+          tabBarButton: (props) => {
+            const state = navigation.getState();
+            const currentRouteName = state.routes[state.index].name;
+            const isSelected = currentRouteName === "PageLogsStack";
+            return (
+              <TabButton {...props} isSelected={isSelected}>
+                <Ionicons name="calendar" size={24} color={theme.text} />
+              </TabButton>
+            );
+          },
+        })}
        />
       <Tab.Screen
        name="Settings"
        component={Settings}
-       options={{
+       options={({ navigation }) => ({
           tabBarShowLabel: false,
-          tabBarIcon: ({ color, size, focused }) => (
-            <View style={{ alignItems: 'center' }}>
-              <Ionicons name="settings-sharp" size={size} color={color} />
-              <View style={{ height: 2, width: 30, backgroundColor: focused ? color : 'transparent', marginTop: 2 }} />
-            </View>
-          ),
-        }}
+          tabBarButton: (props) => {
+            const state = navigation.getState();
+            const currentRouteName = state.routes[state.index].name;
+            const isSelected = currentRouteName === "Settings";
+            return (
+              <TabButton {...props} isSelected={isSelected}>
+                <Ionicons name="settings-sharp" size={24} color={theme.text} />
+              </TabButton>
+            );
+          },
+        })}
          />
     </Tab.Navigator>
   );
 }
+
+const TabButton = (props: any) => {
+  const { onPress, children, isSelected } = props;
+  const { theme } = useTheme();
+
+  return (
+    <Pressable onPress={onPress} style={styles.tabButton}>
+      {children}
+      <View
+        style={{
+          height: 3,
+          borderRadius: 15,
+          width: 30,
+          backgroundColor: isSelected ? theme.text : 'transparent',
+          marginTop: 5,
+        }}
+      />
+    </Pressable>
+  );
+};
+
+const styles = StyleSheet.create({
+  tabButton: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 1,
+  },
+});
 
 const ThemeAwareStatusBar = () => {
   const { theme } = useTheme();
