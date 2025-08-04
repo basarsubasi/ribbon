@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, ActivityIndicator, Pressable, StyleSheet } from 'react-native';
+import { View, ActivityIndicator, Pressable, StyleSheet, Platform } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import { SQLiteProvider } from 'expo-sqlite';
 import { Asset } from 'expo-asset';
@@ -9,7 +9,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-
+import * as NavigationBar from 'expo-navigation-bar';
 
 import { SettingsProvider } from './context/SettingsContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
@@ -214,6 +214,13 @@ const ThemeAwareStatusBar = () => {
 const AppContent = () => {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
+
+  useEffect(() => {
+    if (Platform.OS === 'android') {
+      NavigationBar.setBackgroundColorAsync(theme.colors.background);
+      NavigationBar.setButtonStyleAsync(theme.dark ? 'light' : 'dark');
+    }
+  }, [theme]);
 
   return (
     <View style={{ flex: 1, paddingTop: insets.top, backgroundColor: theme.colors.background }}>
