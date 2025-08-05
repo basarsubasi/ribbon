@@ -72,6 +72,7 @@ CREATE TABLE page_logs (
     start_page INTEGER NOT NULL,
     end_page INTEGER NOT NULL,
     current_page_after_log INTEGER NOT NULL,
+    total_page_read INTEGER NOT NULL,
     read_date DATE DEFAULT CURRENT_DATE,
     read_time TEXT DEFAULT (STRFTIME('%H:%M', CURRENT_TIMESTAMP)),
     FOREIGN KEY (book_id) REFERENCES books(book_id) ON DELETE CASCADE
