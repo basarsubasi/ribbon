@@ -62,5 +62,18 @@
     "searchError": "Arama Hatası",
     "searchErrorMessage": "Kitap araması başarısız oldu. İnternet bağlantınızı kontrol edin ve tekrar deneyin."
   },
+  "bookDetails": {
+    "bookNotFound": "Kitap bulunamadı",
+    "published": "Yayınlandı:",
+    "pages": "sayfa",
+    "isbn": "ISBN",
+    "publishers": "Yayınevleri",
+    "subjects": "Konular",
+    "description": "Açıklama",
+    "readingProgress": "Okuma İlerlemesi",
+    "currentPage": "Mevcut sayfa:",
+    "lastRead": "Son okuma:",
+    "addToLibrary": "Kütüphaneye Ekle"
+  },
   "placeholder": "placeholder"
 }  

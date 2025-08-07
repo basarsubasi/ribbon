@@ -62,5 +62,18 @@
     "searchError": "Search Error",
     "searchErrorMessage": "Failed to search for books. Please check your internet connection and try again."
   },
+  "bookDetails": {
+    "bookNotFound": "Book not found",
+    "published": "Published:",
+    "pages": "pages",
+    "isbn": "ISBN",
+    "publishers": "Publishers",
+    "subjects": "Subjects",
+    "description": "Description",
+    "readingProgress": "Reading Progress",
+    "currentPage": "Current page:",
+    "lastRead": "Last read:",
+    "addToLibrary": "Add to Library"
+  },
   "placeholder": "placeholder"
 }  

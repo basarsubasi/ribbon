@@ -68,7 +68,10 @@ export type LibraryStackParamList = {
     bookData?: ProcessedBookData; 
     isbn?: string; 
   } | undefined;
-  BookDetails: { bookId: number };
+  BookDetails: { 
+    bookId?: number;
+    bookData?: ProcessedBookData;
+  };
   EditBook: { bookId: number };
   ScanBarcode: undefined;
   SearchBook: undefined;

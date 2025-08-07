@@ -17,6 +17,7 @@ import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 
 const { width } = Dimensions.get('window');
 
+
 const Home = () => {
   const { theme } = useTheme();
   const navigation = useNavigation();

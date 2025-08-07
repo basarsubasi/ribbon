@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, FlatList, Alert } from 'react-native';
+import { View, StyleSheet, FlatList, Alert, Image } from 'react-native';
 import {
   Text,
   Searchbar,
@@ -55,7 +55,7 @@ export default function SearchBook() {
   };
 
   const handleBookSelect = (book: ProcessedBookData) => {
-    navigation.navigate('AddBook', { bookData: book });
+    navigation.navigate('BookDetails', { bookData: book });
   };
 
   const renderBookItem = ({ item }: { item: ProcessedBookData }) => (
@@ -66,16 +66,22 @@ export default function SearchBook() {
     >
       <Card.Content>
         <View style={styles.bookContent}>
-          {item.coverUrl && (
-            <View style={styles.coverContainer}>
-              {/* You can add an Image component here if needed */}
+          <View style={styles.coverContainer}>
+            {item.coverUrl ? (
+              <Image
+                source={{ uri: item.coverUrl }}
+                style={styles.coverImage}
+                resizeMode="cover"
+                onError={() => console.log('Failed to load cover image:', item.coverUrl)}
+              />
+            ) : (
               <View style={[styles.coverPlaceholder, { backgroundColor: theme.colors.primary }]}>
                 <Text style={[styles.coverText, { color: theme.colors.onPrimary }]}>
                   📖
                 </Text>
               </View>
-            </View>
-          )}
+            )}
+          </View>
           
           <View style={styles.bookInfo}>
             <Text 
@@ -263,6 +269,11 @@ const styles = StyleSheet.create({
     borderRadius: scale(6),
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  coverImage: {
+    width: scale(50),
+    height: scale(75),
+    borderRadius: scale(6),
   },
   coverText: {
     fontSize: scale(24),
