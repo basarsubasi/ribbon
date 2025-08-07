@@ -1,3 +1,5 @@
+import { ProcessedBookData } from './openLibraryUtils';
+
 // types for reference
 
 export type Book = {
@@ -62,7 +64,10 @@ export type PageLog = {
 
 export type LibraryStackParamList = {
   Library: undefined;
-  AddBook: undefined;
+  AddBook: { 
+    bookData?: ProcessedBookData; 
+    isbn?: string; 
+  } | undefined;
   BookDetails: { bookId: number };
   EditBook: { bookId: number };
   ScanBarcode: undefined;

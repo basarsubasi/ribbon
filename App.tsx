@@ -10,10 +10,14 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import * as NavigationBar from 'expo-navigation-bar';
+import { PaperProvider } from 'react-native-paper';
 
 import { SettingsProvider } from './context/SettingsContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { FontAwesome, Ionicons } from '@expo/vector-icons';
+
+// Initialize i18n
+import './utils/i18n';
 
 import Home from './screens/Home';
 import Library from './screens/library/Library';
@@ -223,16 +227,18 @@ const AppContent = () => {
   }, [theme]);
 
   return (
-    <View style={{ flex: 1, paddingTop: insets.top, backgroundColor: theme.colors.background }}>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <SQLiteProvider databaseName="RibbonDB.db" useSuspense>
-          <NavigationContainer>
-            <ThemeAwareStatusBar />
-            <TabNavigator />
-          </NavigationContainer>
-        </SQLiteProvider>
-      </GestureHandlerRootView>
-    </View>
+    <PaperProvider theme={theme}>
+      <View style={{ flex: 1, paddingTop: insets.top, backgroundColor: theme.colors.background }}>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <SQLiteProvider databaseName="RibbonDB.db" useSuspense>
+            <NavigationContainer>
+              <ThemeAwareStatusBar />
+              <TabNavigator />
+            </NavigationContainer>
+          </SQLiteProvider>
+        </GestureHandlerRootView>
+      </View>
+    </PaperProvider>
   );
 };
 

@@ -1,5 +1,66 @@
 {
-    
-"placeholder":"placeholder"
-
+  "home": {
+  "appTagline": "Dijital Ayraç",
+    "readingStats": "Okuma İstatistiklerin",
+    "totalBooks": "Toplam Kitaplar",
+    "currentlyReading": "Şu An Okunan",
+    "pagesToday": "Bugün Okunan",
+    "thisWeek": "Bu Hafta",
+    "readingStreak": "Okuma Serisi",
+    "pagesRead": "sayfa okundu",
+    "greatProgress": "Harika ilerleme!",
+    "keepItUp": "Böyle devam!",
+    "days": "gün",
+    "continueReading": "Okumaya Devam Et",
+    "noBooksInProgress": "Devam eden kitap yok",
+    "startReadingPrompt": "İlerlemeyi görmek için bir kitap okumaya başla",
+    "browseLibrary": "Kütüphaneye Gözat"
+  },
+  "library": {
+    "addBook": "Kitap Ekle",
+    "scanBarcode": "Barkod Tara",
+    "searchOpenLibrary": "Open Library'de Ara",
+    "addManually": "Manuel Ekle",
+    "selectAddMethod": "Kitap ekleme yöntemini seç",
+    "scanBarcodeDescription": "Kitabın barkodunu tara",
+    "searchDescription": "Online veritabanından ara",
+    "manualDescription": "Kitap detaylarını manuel gir"
+  },
+  "scanner": {
+    "title": "Kitap Barkodunu Tara",
+    "description": "Kitabın barkodunu çerçeve içine yerleştir",
+    "searching": "Kitap aranıyor...",
+    "scanAgain": "Tekrar Taramak İçin Dokun",
+    "cancel": "İptal",
+    "cameraPermissionTitle": "Kamera İzni Gerekli",
+    "cameraPermissionMessage": "Kitap barkodlarını taramak için kameranıza erişim gerekiyor. Lütfen cihaz ayarlarından kamera izinlerini etkinleştirin.",
+    "goBack": "Geri Dön",
+    "grantPermission": "İzin Ver",
+    "invalidBarcode": "Geçersiz Barkod",
+    "invalidBarcodeMessage": "Taranan barkod geçerli bir ISBN gibi görünmüyor. Lütfen bir kitabın ISBN barkodunu taramayı deneyin.",
+    "bookFound": "Kitap Bulundu!",
+    "bookNotFound": "Kitap Bulunamadı",
+    "bookNotFoundMessage": "Bu ISBN için kitap bilgisi bulunamadı. Kitabı manuel olarak ekleyebilirsiniz.",
+    "error": "Hata",
+    "errorMessage": "Kitap bilgisi aranırken hata oluştu. Lütfen tekrar deneyin veya kitabı manuel olarak ekleyin.",
+    "addToLibrary": "Kütüphaneye Ekle",
+    "addManually": "Manuel Ekle",
+    "scanAnother": "Başka Tara"
+  },
+  "search": {
+    "title": "Open Library'de Ara",
+    "placeholder": "Kitap başlığı, yazar veya ISBN girin",
+    "searchButton": "Ara",
+    "searching": "Kitaplar aranıyor...",
+    "noResults": "için kitap bulunamadı",
+    "tryDifferent": "Farklı anahtar kelimelerle aramayı deneyin",
+    "searchPrompt": "Başlık, yazar veya ISBN ile kitap arayın",
+    "publishedLabel": "Yayınlandı:",
+    "pagesLabel": "sayfa",
+    "byAuthor": "yazan:",
+    "cancel": "İptal",
+    "searchError": "Arama Hatası",
+    "searchErrorMessage": "Kitap araması başarısız oldu. İnternet bağlantınızı kontrol edin ve tekrar deneyin."
+  },
+  "placeholder": "placeholder"
 }  

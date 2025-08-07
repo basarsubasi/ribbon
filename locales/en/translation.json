@@ -1,5 +1,66 @@
 {
-    
-"placeholder":"placeholder"
-
+  "home": {
+  "appTagline": "Digital Bookmark",
+    "readingStats": "Your Reading Stats",
+    "totalBooks": "Total Books",
+    "currentlyReading": "Currently Reading",
+    "pagesToday": "Pages Today",
+    "thisWeek": "This Week",
+    "readingStreak": "Reading Streak",
+    "pagesRead": "pages read",
+    "greatProgress": "Great progress!",
+    "keepItUp": "Keep it up!",
+    "days": "days",
+    "continueReading": "Continue Reading",
+    "noBooksInProgress": "No books in progress",
+    "startReadingPrompt": "Start reading a book to see your progress here",
+    "browseLibrary": "Browse Library"
+  },
+  "library": {
+    "addBook": "Add Book",
+    "scanBarcode": "Scan Barcode",
+    "searchOpenLibrary": "Search Open Library", 
+    "addManually": "Add Manually",
+    "selectAddMethod": "Select how to add a book",
+    "scanBarcodeDescription": "Scan a book's barcode",
+    "searchDescription": "Search from online database",
+    "manualDescription": "Enter book details manually"
+  },
+  "scanner": {
+    "title": "Scan Book Barcode",
+    "description": "Position the book's barcode within the frame",
+    "searching": "Searching for book...",
+    "scanAgain": "Tap to Scan Again",
+    "cancel": "Cancel",
+    "cameraPermissionTitle": "Camera Permission Required",
+    "cameraPermissionMessage": "We need access to your camera to scan book barcodes. Please enable camera permissions in your device settings.",
+    "goBack": "Go Back",
+    "grantPermission": "Grant Permission",
+    "invalidBarcode": "Invalid Barcode",
+    "invalidBarcodeMessage": "The scanned barcode does not appear to be a valid ISBN. Please try scanning a book's ISBN barcode.",
+    "bookFound": "Book Found!",
+    "bookNotFound": "Book Not Found",
+    "bookNotFoundMessage": "Could not find book information for this ISBN. You can add the book manually.",
+    "error": "Error",
+    "errorMessage": "Failed to search for book information. Please try again or add the book manually.",
+    "addToLibrary": "Add to Library",
+    "addManually": "Add Manually",
+    "scanAnother": "Scan Another"
+  },
+  "search": {
+    "title": "Search Open Library",
+    "placeholder": "Enter book title, author, or ISBN",
+    "searchButton": "Search",
+    "searching": "Searching books...",
+    "noResults": "No books found for",
+    "tryDifferent": "Try searching with different keywords",
+    "searchPrompt": "Search for books by title, author, or ISBN",
+    "publishedLabel": "Published:",
+    "pagesLabel": "pages",
+    "byAuthor": "by",
+    "cancel": "Cancel",
+    "searchError": "Search Error",
+    "searchErrorMessage": "Failed to search for books. Please check your internet connection and try again."
+  },
+  "placeholder": "placeholder"
 }  
