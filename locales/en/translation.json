@@ -63,6 +63,8 @@
     "oldestFirst": "Oldest First",
     "starsDesc": "Most Stars First",
     "starsAsc": "Least Stars First",
+  "priceAsc": "Lowest Price",
+  "priceDesc": "Highest Price",
     "noCover": "No Cover",
     "unknownAuthor": "Unknown Author",
     "pages": "pages"

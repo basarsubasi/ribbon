@@ -66,7 +66,7 @@ interface FilterOptions {
 }
 
 interface SortOptions {
-  sortBy: 'title' | 'completion' | 'yearPublished' | 'dateAdded' | 'stars';
+  sortBy: 'title' | 'completion' | 'yearPublished' | 'dateAdded' | 'stars' | 'price';
   sortOrder: 'asc' | 'desc';
 }
 
@@ -232,6 +232,12 @@ export default function Library() {
           break;
         case 'stars':
           comparison = (a.stars || 0) - (b.stars || 0);
+          break;
+        case 'price':
+          // Treat null/undefined prices as 0
+          const aPrice = a.price == null ? 0 : a.price;
+          const bPrice = b.price == null ? 0 : b.price;
+          comparison = aPrice - bPrice;
           break;
       }
       
@@ -602,6 +608,21 @@ export default function Library() {
           setSortMenuVisible(false);
         }}
         title={t('library.starsAsc')}
+      />
+      <Divider />
+      <Menu.Item
+        onPress={() => {
+          setSortOptions({ sortBy: 'price', sortOrder: 'asc' });
+          setSortMenuVisible(false);
+        }}
+        title={t('library.priceAsc')}
+      />
+      <Menu.Item
+        onPress={() => {
+          setSortOptions({ sortBy: 'price', sortOrder: 'desc' });
+          setSortMenuVisible(false);
+        }}
+        title={t('library.priceDesc')}
       />
     </Menu>
   );

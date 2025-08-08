@@ -321,48 +321,54 @@ export default function AddBook() {
   };
 
   const renderCoverSection = () => {
+    // Styled like LibraryBookDetails cover section
     return (
-      <Card style={[styles.coverCard, { backgroundColor: theme.colors.surface }]} elevation={2}>
-        <Card.Content style={styles.coverContent}>
-          <Text variant="titleMedium" style={[styles.coverTitle, { color: theme.colors.onSurface }]}>
-            {t('addBook.bookCover')}
-          </Text>
-          
-          <TouchableOpacity
-            onPress={pickImage}
-            style={[
-              styles.coverImageContainer,
-              { backgroundColor: theme.colors.background }
-            ]}
-          >
-            {coverImage ? (
+      <Surface style={[styles.section, { backgroundColor: theme.colors.surface }]} elevation={1}>
+        <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>
+          {t('addBook.bookCover')}
+        </Text>
+        <View style={styles.coverSection}>
+          {coverImage ? (
+            <View style={styles.coverContainer}>
               <Image source={{ uri: coverImage }} style={styles.coverImage} resizeMode="cover" />
-            ) : (
-              <View style={styles.coverPlaceholder}>
-                <IconButton
-                  icon="camera-plus"
-                  size={scale(40)}
-                  iconColor={theme.colors.primary}
-                />
-
-              </View>
-            )}
-          </TouchableOpacity>
-          
+              <IconButton
+                icon="close"
+                iconColor={theme.colors.onError}
+                containerColor={theme.colors.error}
+                size={20}
+                style={styles.removeCoverIconButton}
+                onPress={() => {
+                  setCoverImage('');
+                  setCoverUrl('');
+                }}
+              />
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={[styles.coverPlaceholder, { backgroundColor: theme.colors.surfaceVariant }]}
+              onPress={pickImage}
+            >
+              <IconButton
+                icon="camera-plus"
+                size={scale(40)}
+                iconColor={theme.colors.primary}
+              />
+            </TouchableOpacity>
+          )}
           {coverImage && (
             <Button
-              mode="text"
-              onPress={() => {
-                setCoverImage('');
-                setCoverUrl('');
-              }}
-              style={styles.removeCoverButton}
+              mode="contained"
+              onPress={pickImage}
+              style={styles.changeCoverButton}
+              contentStyle={styles.saveButtonContent}
+              icon="image-edit"
+              textColor={'#FFFFFF'}
             >
-              {t('addBook.removeCover')}
+              {t('addBook.changeCover') || 'Change Cover'}
             </Button>
           )}
-        </Card.Content>
-      </Card>
+        </View>
+      </Surface>
     );
   };
 
@@ -506,8 +512,12 @@ export default function AddBook() {
   };
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      {/* Cover Section */}
+    <ScrollView 
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
+      contentContainerStyle={styles.scrollContent}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* Cover Section (Surface styled) */}
       {renderCoverSection()}
 
       {/* Basic Information */}
@@ -521,16 +531,16 @@ export default function AddBook() {
           visible={bookTypeMenuVisible}
           onDismiss={() => setBookTypeMenuVisible(false)}
           anchor={
-            <TouchableOpacity onPress={() => setBookTypeMenuVisible(true)}>
-              <TextInput
-                mode="outlined"
-                label={t('addBook.bookType')}
-                value={t(`addBook.${bookType}`)}
-                editable={false}
-                right={<TextInput.Icon icon="chevron-down" />}
-                style={styles.textInput}
-              />
-            </TouchableOpacity>
+            <Button
+              mode="contained"
+              onPress={() => setBookTypeMenuVisible(true)}
+              style={styles.menuButton}
+              contentStyle={styles.saveButtonContent}
+              icon="chevron-down"
+              textColor={'#FFFFFF'}
+            >
+              {t(`addBook.${bookType}`)}
+            </Button>
           }
         >
           {BOOK_TYPES.map((type) => (
@@ -595,8 +605,7 @@ export default function AddBook() {
             <Chip
               key={index}
               onClose={() => removeAuthor(author)}
-              style={[styles.chip, { backgroundColor: theme.colors.primaryContainer }]}
-              textStyle={{ color: theme.colors.onPrimaryContainer }}
+              style={styles.chip}
             >
               {author}
             </Chip>
@@ -608,10 +617,12 @@ export default function AddBook() {
           onDismiss={() => setAuthorMenuVisible(false)}
           anchor={
             <Button
-              mode="outlined"
+              mode="contained"
               onPress={() => setAuthorMenuVisible(true)}
               icon="plus"
               style={styles.addButton}
+              contentStyle={styles.saveButtonContent}
+              textColor={'#FFFFFF'}
             >
               {t('addBook.addAuthor')}
             </Button>
@@ -667,8 +678,7 @@ export default function AddBook() {
             <Chip
               key={index}
               onClose={() => removeCategory(category)}
-              style={[styles.chip, { backgroundColor: theme.colors.secondaryContainer }]}
-              textStyle={{ color: theme.colors.onSecondaryContainer }}
+              style={styles.chip}
             >
               {category}
             </Chip>
@@ -680,10 +690,12 @@ export default function AddBook() {
           onDismiss={() => setCategoryMenuVisible(false)}
           anchor={
             <Button
-              mode="outlined"
+              mode="contained"
               onPress={() => setCategoryMenuVisible(true)}
               icon="plus"
               style={styles.addButton}
+              contentStyle={styles.saveButtonContent}
+              textColor={'#FFFFFF'}
             >
               {t('addBook.addCategory')}
             </Button>
@@ -739,8 +751,7 @@ export default function AddBook() {
             <Chip
               key={index}
               onClose={() => removePublisher(publisher)}
-              style={[styles.chip, { backgroundColor: theme.colors.tertiaryContainer }]}
-              textStyle={{ color: theme.colors.onTertiaryContainer }}
+              style={styles.chip}
             >
               {publisher}
             </Chip>
@@ -752,10 +763,12 @@ export default function AddBook() {
           onDismiss={() => setPublisherMenuVisible(false)}
           anchor={
             <Button
-              mode="outlined"
+              mode="contained"
               onPress={() => setPublisherMenuVisible(true)}
               icon="plus"
               style={styles.addButton}
+              contentStyle={styles.saveButtonContent}
+              textColor={'#FFFFFF'}
             >
               {t('addBook.addPublisher')}
             </Button>
@@ -872,34 +885,41 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  coverCard: {
-    margin: scale(16),
-    marginBottom: scale(8),
-  },
-  coverContent: {
-    alignItems: 'center',
+  scrollContent: {
     padding: scale(16),
+    paddingBottom: scale(32),
   },
-  coverTitle: {
-    fontWeight: '600',
-    marginBottom: scale(16),
+  coverSection: {
+    alignItems: 'center',
   },
-  coverImageContainer: {
+  coverContainer: {
+    position: 'relative',
+    marginBottom: scale(12),
+  width: COVER_WIDTH,
+  height: COVER_HEIGHT,
+  },
+  coverPlaceholder: {
     width: COVER_WIDTH,
     height: COVER_HEIGHT,
     borderRadius: scale(8),
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: scale(8),
+    marginBottom: scale(12),
+    borderWidth: 2,
+    borderStyle: 'dashed',
+  },
+  removeCoverIconButton: {
+    position: 'absolute',
+    top: -scale(10),
+    right: -scale(10),
+  },
+  changeCoverButton: {
+    marginTop: scale(8),
   },
   coverImage: {
-    width: '100%',
-    height: '100%',
+    width: COVER_WIDTH,
+    height: COVER_HEIGHT,
     borderRadius: scale(8),
-  },
-  coverPlaceholder: {
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   coverPlaceholderText: {
     marginTop: scale(8),
@@ -978,5 +998,8 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: scale(16),
     fontWeight: '600',
+  },
+  menuButton: {
+    marginBottom: scale(8),
   },
 });

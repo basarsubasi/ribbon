@@ -529,9 +529,12 @@ export default function LibraryBookDetails() {
             
             {coverImage && (
               <Button
-                mode="outlined"
+                mode="contained"
                 onPress={pickImage}
                 style={styles.changeCoverButton}
+                contentStyle={styles.saveButtonContent}
+                icon="image-edit"
+                textColor={'#FFFFFF'}
               >
                 Change Cover
               </Button>
@@ -550,10 +553,12 @@ export default function LibraryBookDetails() {
             onDismiss={() => setBookTypeMenuVisible(false)}
             anchor={
               <Button
-                mode="outlined"
+                mode="contained"
                 onPress={() => setBookTypeMenuVisible(true)}
                 style={styles.menuButton}
-                contentStyle={styles.menuButtonContent}
+                contentStyle={styles.saveButtonContent}
+                icon="chevron-down"
+                textColor={'#FFFFFF'}
               >
                 {t(`addBook.bookTypes.${bookType}`)}
               </Button>
@@ -611,10 +616,12 @@ export default function LibraryBookDetails() {
             onDismiss={() => setAuthorMenuVisible(false)}
             anchor={
               <Button
-                mode="outlined"
+                mode="contained"
                 onPress={() => setAuthorMenuVisible(true)}
                 icon="plus"
                 style={styles.addButton}
+                contentStyle={styles.saveButtonContent}
+                textColor={'#FFFFFF'}
               >
                 {t('addBook.addAuthor')}
               </Button>
@@ -658,16 +665,31 @@ export default function LibraryBookDetails() {
           <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>
             {t('addBook.categories')}
           </Text>
-          
+          {/* Chips first */}
+          <View style={styles.chipsContainer}>
+            {categories.map((category) => (
+              <Chip
+                key={category}
+                onClose={() => removeCategory(category)}
+                style={styles.chip}
+              >
+                {category}
+              </Chip>
+            ))}
+          </View>
+
+          {/* Add Category Button (contained) below chips */}
           <Menu
             visible={categoryMenuVisible}
             onDismiss={() => setCategoryMenuVisible(false)}
             anchor={
               <Button
-                mode="outlined"
+                mode="contained"
                 onPress={() => setCategoryMenuVisible(true)}
                 icon="plus"
                 style={styles.addButton}
+                contentStyle={styles.saveButtonContent}
+                textColor={'#FFFFFF'}
               >
                 {t('addBook.addCategory')}
               </Button>
@@ -704,18 +726,6 @@ export default function LibraryBookDetails() {
               )}
             </View>
           </Menu>
-          
-          <View style={styles.chipsContainer}>
-            {categories.map((category) => (
-              <Chip
-                key={category}
-                onClose={() => removeCategory(category)}
-                style={styles.chip}
-              >
-                {category}
-              </Chip>
-            ))}
-          </View>
         </Surface>
 
         {/* Publishers */}
@@ -723,16 +733,31 @@ export default function LibraryBookDetails() {
           <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>
             {t('addBook.publishers')}
           </Text>
-          
+          {/* Chips first */}
+          <View style={styles.chipsContainer}>
+            {publishers.map((publisher) => (
+              <Chip
+                key={publisher}
+                onClose={() => removePublisher(publisher)}
+                style={styles.chip}
+              >
+                {publisher}
+              </Chip>
+            ))}
+          </View>
+
+          {/* Add Publisher Button (contained) below chips */}
           <Menu
             visible={publisherMenuVisible}
             onDismiss={() => setPublisherMenuVisible(false)}
             anchor={
               <Button
-                mode="outlined"
+                mode="contained"
                 onPress={() => setPublisherMenuVisible(true)}
                 icon="plus"
                 style={styles.addButton}
+                contentStyle={styles.saveButtonContent}
+                textColor={'#FFFFFF'}
               >
                 {t('addBook.addPublisher')}
               </Button>
@@ -769,18 +794,6 @@ export default function LibraryBookDetails() {
               )}
             </View>
           </Menu>
-          
-          <View style={styles.chipsContainer}>
-            {publishers.map((publisher) => (
-              <Chip
-                key={publisher}
-                onClose={() => removePublisher(publisher)}
-                style={styles.chip}
-              >
-                {publisher}
-              </Chip>
-            ))}
-          </View>
         </Surface>
 
         {/* Book Details */}

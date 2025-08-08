@@ -63,6 +63,8 @@
     "oldestFirst": "En Eskiler",
     "starsDesc": "En Çok Yıldızlı",
     "starsAsc": "En Az Yıldızlı",
+  "priceAsc": "En Düşük Fiyat",
+  "priceDesc": "En Yüksek Fiyat",
     "noCover": "Kapak Yok",
     "unknownAuthor": "Bilinmeyen Yazar",
     "pages": "sayfa"
