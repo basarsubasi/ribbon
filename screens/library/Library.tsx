@@ -27,6 +27,7 @@ import AddBookModal from '../../components/AddBookModal';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { LibraryStackParamList } from '../../utils/types';
 import { useSQLiteContext } from 'expo-sqlite';
+import { getCoverImageUri } from '../../utils/imageUtils';
 
 type LibraryNavigationProp = StackNavigationProp<LibraryStackParamList, 'Library'>;
 
@@ -254,11 +255,12 @@ export default function Library() {
           <Card.Content style={styles.bookContent}>
             {/* Book Cover */}
             <View style={styles.coverContainer}>
-              {(item.cover_path || item.cover_url) ? (
+              {getCoverImageUri(item.cover_path, item.cover_url) ? (
                 <Image 
-                  source={{ uri: item.cover_path || item.cover_url }} 
+                  source={{ uri: getCoverImageUri(item.cover_path, item.cover_url)! }} 
                   style={styles.coverImage}
                   resizeMode="cover"
+                  onError={(error) => console.log('Failed to load book cover:', error.nativeEvent.error)}
                 />
               ) : (
                 <View style={[styles.coverPlaceholder, { backgroundColor: theme.colors.surfaceVariant }]}>
@@ -271,13 +273,23 @@ export default function Library() {
             
             {/* Book Info */}
             <View style={styles.bookInfo}>
-              <Text 
-                variant="titleMedium" 
-                style={[styles.bookTitle, { color: theme.colors.onSurface }]}
-                numberOfLines={2}
-              >
-                {item.title}
-              </Text>
+              <View style={styles.titleRow}>
+                <Text 
+                  variant="titleMedium" 
+                  style={[styles.bookTitle, { color: theme.colors.onSurface }]}
+                  numberOfLines={2}
+                >
+                  {item.title}
+                  {item.year_published && (
+                    <Text 
+                      variant="bodySmall" 
+                      style={[styles.yearInTitle, { color: theme.colors.onSurfaceVariant }]}
+                    >
+                      {' '}({item.year_published})
+                    </Text>
+                  )}
+                </Text>
+              </View>
               
               <Text 
                 variant="bodyMedium" 
@@ -286,21 +298,6 @@ export default function Library() {
               >
                 {item.authors.join(', ') || t('library.unknownAuthor')}
               </Text>
-              
-              {/* Progress Bar */}
-              <View style={styles.progressContainer}>
-                <ProgressBar 
-                  progress={completion}
-                  color={theme.colors.primary}
-                  style={styles.progressBar}
-                />
-                <Text 
-                  variant="bodySmall" 
-                  style={[styles.progressText, { color: theme.colors.onSurfaceVariant }]}
-                >
-                  {completionText}
-                </Text>
-              </View>
               
               {/* Stars Rating */}
               {item.stars && item.stars > 0 && (
@@ -342,14 +339,21 @@ export default function Library() {
                 >
                   {item.current_page}/{item.number_of_pages} {t('library.pages')}
                 </Text>
-                {item.year_published && (
-                  <Text 
-                    variant="bodySmall" 
-                    style={[styles.yearInfo, { color: theme.colors.onSurfaceVariant }]}
-                  >
-                    {item.year_published}
-                  </Text>
-                )}
+              </View>
+              
+              {/* Progress Bar */}
+              <View style={styles.progressContainer}>
+                <ProgressBar 
+                  progress={completion}
+                  color={theme.colors.primary}
+                  style={styles.progressBar}
+                />
+                <Text 
+                  variant="bodySmall" 
+                  style={[styles.progressText, { color: theme.colors.onSurfaceVariant }]}
+                >
+                  {completionText}
+                </Text>
               </View>
             </View>
           </Card.Content>
@@ -364,10 +368,12 @@ export default function Library() {
       onDismiss={() => setFilterMenuVisible(false)}
       anchor={
         <Button
-          mode="outlined"
+          mode="contained"
           onPress={() => setFilterMenuVisible(true)}
           icon="filter"
           style={styles.filterButton}
+          buttonColor={theme.colors.primary}
+          textColor="white"
         >
           {t('library.filter')}
         </Button>
@@ -450,10 +456,12 @@ export default function Library() {
       onDismiss={() => setSortMenuVisible(false)}
       anchor={
         <Button
-          mode="outlined"
+          mode="contained"
           onPress={() => setSortMenuVisible(true)}
           icon="sort"
           style={styles.sortButton}
+          buttonColor={theme.colors.primary}
+          textColor="white"
         >
           {t('library.sort')}
         </Button>
@@ -526,15 +534,18 @@ export default function Library() {
       />
       
       {/* Filter and Sort Controls */}
-      <View style={[styles.controlsContainer, { backgroundColor: theme.colors.surface }]}>
-        {renderFilterMenu()}
-        {renderSortMenu()}
+      <View style={styles.controlsContainer}>
+        <View style={styles.buttonsRow}>
+          {renderFilterMenu()}
+          {renderSortMenu()}
+        </View>
         
         {/* Active Filter Chip */}
         {filterOptions.filterType !== 'none' && (
           <Chip
             onClose={clearFilter}
             style={[styles.filterChip, { backgroundColor: theme.colors.primaryContainer }]}
+            textStyle={styles.filterChipText}
           >
             {filterOptions.filterValue}
           </Chip>
@@ -593,7 +604,7 @@ const styles = StyleSheet.create({
   },
   searchBar: {
     margin: scale(16),
-    marginBottom: scale(8),
+    marginBottom: scale(16),
     elevation: 0,
     shadowOpacity: 0,
   },
@@ -603,21 +614,30 @@ const styles = StyleSheet.create({
     paddingVertical: scale(12),
     gap: scale(8),
     alignItems: 'center',
-    marginBottom: scale(8),
-    borderRadius: scale(8),
-    marginHorizontal: scale(16),
-    elevation: 1,
+    marginBottom: scale(16),
+  },
+  buttonsRow: {
+    flexDirection: 'row',
+    gap: scale(8),
+    alignItems: 'center',
+    flex: 1,
   },
   filterButton: {
     flex: 1,
     minHeight: scale(40),
+    borderWidth: 0,
   },
   sortButton: {
     flex: 1,
     minHeight: scale(40),
+    borderWidth: 0,
   },
   filterChip: {
     marginLeft: scale(8),
+    flexShrink: 0,
+  },
+  filterChipText: {
+    fontSize: scale(12),
   },
   listContainer: {
     padding: scale(16),
@@ -657,16 +677,27 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: scale(4),
   },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    flexWrap: 'nowrap',
+    marginBottom: scale(4),
+  },
+  yearInTitle: {
+    marginLeft: scale(6),
+    flexShrink: 0,
+  },
   bookAuthor: {
     marginBottom: scale(8),
   },
   progressContainer: {
-    marginBottom: scale(8),
+    marginTop: scale(8),
+    marginBottom: scale(1),
   },
   progressBar: {
     height: scale(6),
     borderRadius: scale(3),
-    marginBottom: scale(4),
+    marginBottom: scale(1),
   },
   progressText: {
     fontSize: scale(12),

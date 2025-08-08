@@ -29,7 +29,13 @@ import { LibraryStackParamList } from '../../utils/types';
 import { ProcessedBookData } from '../../utils/openLibraryUtils';
 import * as SQLite from 'expo-sqlite';
 import * as ImagePicker from 'expo-image-picker';
-import * as FileSystem from 'expo-file-system';
+import { 
+  saveLocalBookCover, 
+  cacheRemoteBookCover, 
+  deleteOldCover, 
+  getCoverImageUri,
+  initializeImageDirectories 
+} from '../../utils/imageUtils';
 
 type AddBookRouteProp = RouteProp<LibraryStackParamList, 'AddBook'>;
 type AddBookNavigationProp = StackNavigationProp<LibraryStackParamList, 'AddBook'>;
@@ -102,6 +108,7 @@ export default function AddBook() {
 
   useEffect(() => {
     initializeDatabase();
+    initializeImageDirectories();
   }, []);
 
   useEffect(() => {
@@ -224,25 +231,19 @@ export default function AddBook() {
     }
   };
 
-  const saveCoverImage = async (): Promise<string | null> => {
-    if (!coverImage || coverImage.startsWith('http')) return null;
+  const handleCoverImageSave = async (): Promise<string | null> => {
+    if (!coverImage) return null;
     
     try {
-      const fileName = `cover_${Date.now()}.jpg`;
-      const localPath = `${FileSystem.documentDirectory}covers/${fileName}`;
+      // If it's a local image (from camera/gallery), save it
+      if (!coverImage.startsWith('http')) {
+        return await saveLocalBookCover(coverImage);
+      }
       
-      // Create covers directory if it doesn't exist
-      await FileSystem.makeDirectoryAsync(`${FileSystem.documentDirectory}covers/`, { intermediates: true });
-      
-      // Copy image to local directory
-      await FileSystem.copyAsync({
-        from: coverImage,
-        to: localPath
-      });
-      
-      return localPath;
+      // If it's a remote image (from OpenLibrary), cache it locally
+      return await cacheRemoteBookCover(coverImage);
     } catch (error) {
-      console.error('Error saving cover image:', error);
+      console.error('Error handling cover image:', error);
       return null;
     }
   };
@@ -442,7 +443,7 @@ export default function AddBook() {
     
     try {
       // Save cover image if exists
-      const localCoverPath = await saveCoverImage();
+      const localCoverPath = await handleCoverImageSave();
       
       // Insert book
       const bookResult = await db.runAsync(`

@@ -28,7 +28,13 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { LibraryStackParamList } from '../../utils/types';
 import { useSQLiteContext } from 'expo-sqlite';
 import * as ImagePicker from 'expo-image-picker';
-import * as FileSystem from 'expo-file-system';
+import { 
+  saveLocalBookCover, 
+  cacheRemoteBookCover, 
+  deleteOldCover, 
+  getCoverImageUri,
+  initializeImageDirectories 
+} from '../../utils/imageUtils';
 
 type LibraryBookDetailsRouteProp = RouteProp<LibraryStackParamList, 'LibraryBookDetails'>;
 type LibraryBookDetailsNavigationProp = StackNavigationProp<LibraryStackParamList, 'LibraryBookDetails'>;
@@ -93,6 +99,7 @@ export default function LibraryBookDetails() {
   const [price, setPrice] = useState('');
   const [coverImage, setCoverImage] = useState<string>('');
   const [coverUrl, setCoverUrl] = useState<string>('');
+  const [originalCoverPath, setOriginalCoverPath] = useState<string>('');  // Track original for cleanup
   
   // Chip states
   const [authors, setAuthors] = useState<string[]>([]);
@@ -123,6 +130,7 @@ export default function LibraryBookDetails() {
   useEffect(() => {
     loadBookData();
     loadExistingData();
+    initializeImageDirectories();
   }, []);
 
   const loadBookData = async () => {
@@ -167,6 +175,7 @@ export default function LibraryBookDetails() {
         setPrice(book.price?.toString() || '');
         setCoverUrl(book.cover_url || '');
         setCoverImage(book.cover_path || book.cover_url || '');
+        setOriginalCoverPath(book.cover_path || '');  // Store original for cleanup
         setAuthors(book.authors);
         setCategories(book.categories);
         setPublishers(book.publishers);
@@ -255,20 +264,17 @@ export default function LibraryBookDetails() {
     setCoverUrl('');
   };
 
-  const saveImageToStorage = async (uri: string): Promise<string | null> => {
+  const handleImageSave = async (uri: string): Promise<string | null> => {
     try {
-      const filename = `book_cover_${bookId}_${Date.now()}.jpg`;
-      const documentDirectory = FileSystem.documentDirectory;
-      const imagesDirectory = `${documentDirectory}book_covers/`;
-      
-      await FileSystem.makeDirectoryAsync(imagesDirectory, { intermediates: true });
-      
-      const newPath = `${imagesDirectory}${filename}`;
-      await FileSystem.copyAsync({ from: uri, to: newPath });
-      
-      return newPath;
+      if (!uri.startsWith('http')) {
+        // Local image (from camera/gallery)
+        return await saveLocalBookCover(uri, bookId);
+      } else {
+        // Remote image (cache it locally)
+        return await cacheRemoteBookCover(uri, bookId);
+      }
     } catch (error) {
-      console.error('Error saving image:', error);
+      console.error('Error handling image save:', error);
       return null;
     }
   };
@@ -302,9 +308,25 @@ export default function LibraryBookDetails() {
       
       // Save cover image if it's a local URI (not a URL or existing path)
       if (coverImage && (coverImage.startsWith('file://') || coverImage.startsWith('content://'))) {
-        const savedPath = await saveImageToStorage(coverImage);
+        const savedPath = await handleImageSave(coverImage);
         if (savedPath) {
           coverPath = savedPath;
+          
+          // Delete old cover if we saved a new one
+          if (originalCoverPath && originalCoverPath !== savedPath) {
+            await deleteOldCover(originalCoverPath);
+          }
+        }
+      } else if (coverImage && coverImage.startsWith('http')) {
+        // If we have a remote URL, cache it locally
+        const cachedPath = await cacheRemoteBookCover(coverImage, bookId);
+        if (cachedPath) {
+          coverPath = cachedPath;
+          
+          // Delete old cover if we cached a new one
+          if (originalCoverPath && originalCoverPath !== cachedPath) {
+            await deleteOldCover(originalCoverPath);
+          }
         }
       }
 
