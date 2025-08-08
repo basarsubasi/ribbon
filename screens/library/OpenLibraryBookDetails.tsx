@@ -23,25 +23,27 @@ import { scale, verticalScale } from 'react-native-size-matters';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { LibraryStackParamList, Book } from '../../utils/types';
 import { ProcessedBookData } from '../../utils/openLibraryUtils';
+import { useSQLiteContext } from 'expo-sqlite';
 
-type BookDetailsRouteProp = RouteProp<LibraryStackParamList, 'BookDetails'>;
-type BookDetailsNavigationProp = StackNavigationProp<LibraryStackParamList, 'BookDetails'>;
+type OpenLibraryBookDetailsRouteProp = RouteProp<LibraryStackParamList, 'OpenLibraryBookDetails'>;
+type OpenLibraryBookDetailsNavigationProp = StackNavigationProp<LibraryStackParamList, 'OpenLibraryBookDetails'>;
 
 const { width: screenWidth } = Dimensions.get('window');
 const COVER_WIDTH = screenWidth * 0.4;
 const COVER_HEIGHT = COVER_WIDTH * 1.5;
 
-export default function BookDetails() {
+export default function OpenLibraryBookDetails() {
   const { theme } = useTheme();
-  const navigation = useNavigation<BookDetailsNavigationProp>();
-  const route = useRoute<BookDetailsRouteProp>();
+  const navigation = useNavigation<OpenLibraryBookDetailsNavigationProp>();
+  const route = useRoute<OpenLibraryBookDetailsRouteProp>();
   const { t } = useTranslation();
+  const db = useSQLiteContext();
   
   const [book, setBook] = useState<Book | ProcessedBookData | null>(null);
   const [loading, setLoading] = useState(true);
   const [isLibraryBook, setIsLibraryBook] = useState(false);
   
-  // Dropdown states
+  // Dropdown states for OpenLibrary books
   const [selectedPublishers, setSelectedPublishers] = useState<string[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [publisherMenuVisible, setPublisherMenuVisible] = useState(false);
@@ -50,30 +52,76 @@ export default function BookDetails() {
   const { bookId, bookData } = route.params;
 
   useEffect(() => {
-    if (bookData) {
-      // This is a book from OpenLibrary search
-      setBook(bookData);
-      setIsLibraryBook(false);
-      setLoading(false);
-      
-      // Set initial dropdown values (first alphabetically)
-      const publishedBookData = bookData as ProcessedBookData;
-      if (publishedBookData.publishers && publishedBookData.publishers.length > 0) {
-        const sortedPublishers = [...publishedBookData.publishers].sort();
-        setSelectedPublishers([sortedPublishers[0]]);
-      }
-      if (publishedBookData.subjects && publishedBookData.subjects.length > 0) {
-        const sortedSubjects = [...publishedBookData.subjects].sort();
-        setSelectedCategories([sortedSubjects[0]]);
-      }
-    } else if (bookId) {
-      // This is a book from the user's library - we'd need to fetch it from database
-      // For now, we'll show a placeholder
-      setIsLibraryBook(true);
-      setLoading(false);
-      // TODO: Fetch book from SQLite database using bookId
-    }
+    loadBookData();
   }, [bookId, bookData]);
+
+  const loadBookData = async () => {
+    setLoading(true);
+    try {
+      if (bookData) {
+        // This is a book from OpenLibrary search
+        setBook(bookData);
+        setIsLibraryBook(false);
+        
+        // Set initial dropdown values (first alphabetically)
+        const publishedBookData = bookData as ProcessedBookData;
+        if (publishedBookData.publishers && publishedBookData.publishers.length > 0) {
+          const sortedPublishers = [...publishedBookData.publishers].sort();
+          setSelectedPublishers([sortedPublishers[0]]);
+        }
+        if (publishedBookData.subjects && publishedBookData.subjects.length > 0) {
+          const sortedSubjects = [...publishedBookData.subjects].sort();
+          setSelectedCategories([sortedSubjects[0]]);
+        }
+      } else if (bookId) {
+        // This is a book from the user's library - fetch it from database
+        await loadLibraryBook(bookId);
+        setIsLibraryBook(true);
+      }
+    } catch (error) {
+      console.error('Error loading book data:', error);
+      Alert.alert(t('common.error'), 'Failed to load book details');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadLibraryBook = async (id: number) => {
+    try {
+      const bookResult = await db.getFirstAsync<any>(`
+        SELECT 
+          b.*,
+          GROUP_CONCAT(DISTINCT a.name) as authors,
+          GROUP_CONCAT(DISTINCT c.name) as categories,
+          GROUP_CONCAT(DISTINCT p.name) as publishers
+        FROM books b
+        LEFT JOIN book_authors ba ON b.book_id = ba.book_id
+        LEFT JOIN authors a ON ba.author_id = a.author_id
+        LEFT JOIN book_categories bc ON b.book_id = bc.book_id
+        LEFT JOIN categories c ON bc.category_id = c.category_id
+        LEFT JOIN book_publishers bp ON b.book_id = bp.book_id
+        LEFT JOIN publishers p ON bp.publisher_id = p.publisher_id
+        WHERE b.book_id = ?
+        GROUP BY b.book_id
+      `, [id]);
+
+      if (bookResult) {
+        const processedBook: Book & { authors: string[]; categories: string[]; publishers: string[] } = {
+          ...bookResult,
+          authors: bookResult.authors ? bookResult.authors.split(',') : [],
+          categories: bookResult.categories ? bookResult.categories.split(',') : [],
+          publishers: bookResult.publishers ? bookResult.publishers.split(',') : []
+        };
+        setBook(processedBook);
+      } else {
+        Alert.alert(t('bookDetails.bookNotFound'), 'This book could not be found in your library');
+        navigation.goBack();
+      }
+    } catch (error) {
+      console.error('Error loading library book:', error);
+      throw error;
+    }
+  };
 
   const handleAddToLibrary = () => {
     if (book && !isLibraryBook) {

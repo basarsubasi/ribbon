@@ -56,7 +56,7 @@ export default function SearchBook() {
   };
 
   const handleBookSelect = (book: ProcessedBookData) => {
-    navigation.navigate('BookDetails', { bookData: book });
+    navigation.navigate('OpenLibraryBookDetails', { bookData: book });
   };
 
   const renderBookItem = ({ item }: { item: ProcessedBookData }) => (

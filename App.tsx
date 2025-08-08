@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, ActivityIndicator, Pressable, StyleSheet, Platform } from 'react-native';
 import * as FileSystem from 'expo-file-system';
-import { SQLiteProvider } from 'expo-sqlite';
+import { SQLiteProvider, useSQLiteContext } from 'expo-sqlite';
 import { Asset } from 'expo-asset';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
@@ -19,10 +19,17 @@ import { FontAwesome, Ionicons } from '@expo/vector-icons';
 // Initialize i18n
 import './utils/i18n';
 
+// Import test data function
+import { insertTestData } from './utils/insertTestData';
+
+// Initialize i18n
+import './utils/i18n';
+
 import Home from './screens/Home';
 import Library from './screens/library/Library';
 import AddBook from './screens/library/AddBook';
-import BookDetails from './screens/library/BookDetails';
+import LibraryBookDetails from './screens/library/LibraryBookDetails';
+import OpenLibraryBookDetails from './screens/library/OpenLibraryBookDetails';
 import EditBook from './screens/library/EditBook';
 import ScanBarcode from './screens/library/ScanBarcode';
 import SearchBook from './screens/library/SearchBook';
@@ -74,7 +81,8 @@ function LibraryStackNavigator() {
         }}>
       <LibraryStack.Screen name="Library" component={Library} options={{ headerShown: false }} />
       <LibraryStack.Screen name="AddBook" component={AddBook} options={{ headerShown: false }}   />
-      <LibraryStack.Screen name="BookDetails" component={BookDetails} options={{ headerShown: false }} />
+      <LibraryStack.Screen name="LibraryBookDetails" component={LibraryBookDetails} options={{ headerShown: false }} />
+      <LibraryStack.Screen name="OpenLibraryBookDetails" component={OpenLibraryBookDetails} options={{ headerShown: false }} />
       <LibraryStack.Screen name="EditBook" component={EditBook} options={{ headerShown: false }} />
       <LibraryStack.Screen name="ScanBarcode" component={ScanBarcode} options={{ headerShown: false }} />
       <LibraryStack.Screen name="SearchBook" component={SearchBook} options={{ headerShown: false }} />
@@ -215,6 +223,37 @@ const ThemeAwareStatusBar = () => {
   return <StatusBar style={theme.dark ? 'light' : 'dark'} />;
 };
 
+const DatabaseInitializer = ({ children }: { children: React.ReactNode }) => {
+  const [isInitialized, setIsInitialized] = useState(false);
+  const db = useSQLiteContext();
+
+  useEffect(() => {
+    const initializeDatabase = async () => {
+      try {
+        console.log('Initializing database with test data...');
+        await insertTestData(db);
+        setIsInitialized(true);
+      } catch (error) {
+        console.error('Failed to initialize database:', error);
+        // Still allow the app to continue even if test data insertion fails
+        setIsInitialized(true);
+      }
+    };
+
+    initializeDatabase();
+  }, [db]);
+
+  if (!isInitialized) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
+  return <>{children}</>;
+};
+
 const AppContent = () => {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
@@ -231,10 +270,12 @@ const AppContent = () => {
       <View style={{ flex: 1, paddingTop: insets.top, backgroundColor: theme.colors.background }}>
         <GestureHandlerRootView style={{ flex: 1 }}>
           <SQLiteProvider databaseName="RibbonDB.db" useSuspense>
-            <NavigationContainer>
-              <ThemeAwareStatusBar />
-              <TabNavigator />
-            </NavigationContainer>
+            <DatabaseInitializer>
+              <NavigationContainer>
+                <ThemeAwareStatusBar />
+                <TabNavigator />
+              </NavigationContainer>
+            </DatabaseInitializer>
           </SQLiteProvider>
         </GestureHandlerRootView>
       </View>

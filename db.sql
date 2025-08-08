@@ -7,7 +7,7 @@ CREATE TABLE books (
     cover_url TEXT,
     cover_path TEXT,
     number_of_pages INTEGER NOT NULL,
-    isbn_13 TEXT UNIQUE,
+    isbn TEXT UNIQUE,
     openlibrary_code TEXT UNIQUE, 
     year_published INTEGER,
     date_added DATE DEFAULT CURRENT_DATE, 

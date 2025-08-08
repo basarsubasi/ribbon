@@ -197,10 +197,11 @@ export default function AddBook() {
     }
 
     const result = await ImagePicker.launchCameraAsync({
-  mediaTypes: 'images',
+      mediaTypes: 'images',
       allowsEditing: true,
       aspect: [2, 3],
       quality: 0.8,
+      cameraType: ImagePicker.CameraType.back,
     });
 
     if (!result.canceled) {
@@ -330,7 +331,7 @@ export default function AddBook() {
             onPress={pickImage}
             style={[
               styles.coverImageContainer,
-              { backgroundColor: theme.colors.surfaceVariant }
+              { backgroundColor: theme.colors.background }
             ]}
           >
             {coverImage ? (
@@ -446,7 +447,7 @@ export default function AddBook() {
       // Insert book
       const bookResult = await db.runAsync(`
         INSERT INTO books (
-          book_type, title, cover_url, cover_path, number_of_pages, isbn_13, 
+          book_type, title, cover_url, cover_path, number_of_pages, isbn, 
           openlibrary_code, year_published, review, notes, stars, price
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `, [
@@ -616,14 +617,22 @@ export default function AddBook() {
           }
         >
           {/* Existing authors */}
-          {getAvailableAuthors().map((author) => (
+          {getAvailableAuthors().length > 0 ? (
+            getAvailableAuthors().map((author) => (
+              <Menu.Item
+                key={author}
+                onPress={() => addAuthor(author)}
+                title={author}
+              />
+            ))
+          ) : (
             <Menu.Item
-              key={author}
-              onPress={() => addAuthor(author)}
-              title={author}
+              key="no-authors"
+              title={t('addBook.noAuthorsFound')}
+              disabled
             />
-          ))}
-          {getAvailableAuthors().length > 0 && <Divider />}
+          )}
+          <Divider />
           {/* Add new author */}
           <View style={styles.menuInputContainer}>
             <TextInput
@@ -680,14 +689,22 @@ export default function AddBook() {
           }
         >
           {/* Existing categories */}
-          {getAvailableCategories().map((category) => (
+          {getAvailableCategories().length > 0 ? (
+            getAvailableCategories().map((category) => (
+              <Menu.Item
+                key={category}
+                onPress={() => addCategory(category)}
+                title={category}
+              />
+            ))
+          ) : (
             <Menu.Item
-              key={category}
-              onPress={() => addCategory(category)}
-              title={category}
+              key="no-categories"
+              title={t('addBook.noCategoriesFound')}
+              disabled
             />
-          ))}
-          {getAvailableCategories().length > 0 && <Divider />}
+          )}
+          <Divider />
           {/* Add new category */}
           <View style={styles.menuInputContainer}>
             <TextInput
@@ -744,14 +761,22 @@ export default function AddBook() {
           }
         >
           {/* Existing publishers */}
-          {getAvailablePublishers().map((publisher) => (
+          {getAvailablePublishers().length > 0 ? (
+            getAvailablePublishers().map((publisher) => (
+              <Menu.Item
+                key={publisher}
+                onPress={() => addPublisher(publisher)}
+                title={publisher}
+              />
+            ))
+          ) : (
             <Menu.Item
-              key={publisher}
-              onPress={() => addPublisher(publisher)}
-              title={publisher}
+              key="no-publishers"
+              title={t('addBook.noPublishersFound')}
+              disabled
             />
-          ))}
-          {getAvailablePublishers().length > 0 && <Divider />}
+          )}
+          <Divider />
           {/* Add new publisher */}
           <View style={styles.menuInputContainer}>
             <TextInput
@@ -777,13 +802,9 @@ export default function AddBook() {
       {/* Review & Rating Section */}
       <Surface style={[styles.section, { backgroundColor: theme.colors.surface }]} elevation={1}>
         <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>
-          {t('addBook.reviewRating')}
+          {t('addBook.reviewNotes')}
         </Text>
         
-        {/* Stars */}
-
-        {renderStars()}
-
         {/* Review */}
         <TextInput
           mode="outlined"
@@ -815,6 +836,15 @@ export default function AddBook() {
           keyboardType="numeric"
           style={styles.textInput}
         />
+      </Surface>
+
+      {/* Rating Section */}
+      <Surface style={[styles.section, { backgroundColor: theme.colors.surface }]} elevation={1}>
+        <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>
+          {t('addBook.rating')}
+        </Text>
+        
+        {renderStars()}
       </Surface>
 
       {/* Save Button */}
