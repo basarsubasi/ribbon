@@ -50,6 +50,7 @@
     "noFilter": "Filtre Yok",
     "filterByAuthor": "Yazara Göre Filtrele",
     "filterByCategory": "Kategoriye Göre Filtrele",
+    "filterByBookType": "Kitap Türüne Göre Filtrele",
     "filterByStatus": "Duruma Göre Filtrele",
     "currentlyReading": "Şu Anda Okuduklarım",
     "finished": "Bitirilenler",
@@ -60,6 +61,8 @@
     "completionDesc": "En Çok Tamamlanan",
     "newestFirst": "En Yeniler",
     "oldestFirst": "En Eskiler",
+    "starsDesc": "En Çok Yıldızlı",
+    "starsAsc": "En Az Yıldızlı",
     "noCover": "Kapak Yok",
     "unknownAuthor": "Bilinmeyen Yazar",
     "pages": "sayfa"

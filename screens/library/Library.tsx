@@ -28,6 +28,8 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { LibraryStackParamList } from '../../utils/types';
 import { useSQLiteContext } from 'expo-sqlite';
 import { getCoverImageUri } from '../../utils/imageUtils';
+import { FontAwesome} from '@expo/vector-icons';
+
 
 type LibraryNavigationProp = StackNavigationProp<LibraryStackParamList, 'Library'>;
 
@@ -56,12 +58,15 @@ interface Book {
 }
 
 interface FilterOptions {
-  filterType: 'none' | 'author' | 'category' | 'publisher' | 'status' | 'bookType';
-  filterValue: string;
+  status?: string[];
+  bookType?: string[];
+  authors?: string[];
+  categories?: string[];
+  publishers?: string[];
 }
 
 interface SortOptions {
-  sortBy: 'title' | 'completion' | 'yearPublished' | 'dateAdded';
+  sortBy: 'title' | 'completion' | 'yearPublished' | 'dateAdded' | 'stars';
   sortOrder: 'asc' | 'desc';
 }
 
@@ -80,10 +85,7 @@ export default function Library() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterMenuVisible, setFilterMenuVisible] = useState(false);
   const [sortMenuVisible, setSortMenuVisible] = useState(false);
-  const [filterOptions, setFilterOptions] = useState<FilterOptions>({ 
-    filterType: 'none', 
-    filterValue: '' 
-  });
+  const [filterOptions, setFilterOptions] = useState<FilterOptions>({});
   const [sortOptions, setSortOptions] = useState<SortOptions>({ 
     sortBy: 'title', 
     sortOrder: 'asc' 
@@ -92,6 +94,7 @@ export default function Library() {
   const [availableAuthors, setAvailableAuthors] = useState<string[]>([]);
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
   const [availablePublishers, setAvailablePublishers] = useState<string[]>([]);
+  const [availableBookTypes, setAvailableBookTypes] = useState<string[]>([]);
 
   useFocusEffect(
     useCallback(() => {
@@ -137,10 +140,12 @@ export default function Library() {
       const authorsResult = await db.getAllAsync<{name: string}>('SELECT DISTINCT name FROM authors ORDER BY name');
       const categoriesResult = await db.getAllAsync<{name: string}>('SELECT DISTINCT name FROM categories ORDER BY name');
       const publishersResult = await db.getAllAsync<{name: string}>('SELECT DISTINCT name FROM publishers ORDER BY name');
+      const bookTypesResult = await db.getAllAsync<{book_type: string}>('SELECT DISTINCT book_type FROM books ORDER BY book_type');
       
       setAvailableAuthors(authorsResult.map((row: any) => row.name));
       setAvailableCategories(categoriesResult.map((row: any) => row.name));
       setAvailablePublishers(publishersResult.map((row: any) => row.name));
+      setAvailableBookTypes(bookTypesResult.map((row: any) => row.book_type));
       
     } catch (error) {
       console.error('Error loading books:', error);
@@ -160,33 +165,51 @@ export default function Library() {
       );
     }
 
-    // Apply category filters
-    if (filterOptions.filterType !== 'none' && filterOptions.filterValue) {
-      filtered = filtered.filter(book => {
-        switch (filterOptions.filterType) {
-          case 'author':
-            return book.authors.includes(filterOptions.filterValue);
-          case 'category':
-            return book.categories.includes(filterOptions.filterValue);
-          case 'publisher':
-            return book.publishers.includes(filterOptions.filterValue);
-          case 'status':
-            const completion = book.current_page / book.number_of_pages;
-            if (filterOptions.filterValue === 'finished') {
-              return completion >= 1;
-            } else if (filterOptions.filterValue === 'reading') {
-              return completion > 0 && completion < 1;
-            } else if (filterOptions.filterValue === 'notStarted') {
-              return completion === 0;
-            }
-            return true;
-          case 'bookType':
-            return book.book_type === filterOptions.filterValue;
-          default:
-            return true;
-        }
-      });
-    }
+    // Apply multiple filters
+    filtered = filtered.filter(book => {
+      // Status filter
+      if (filterOptions.status && filterOptions.status.length > 0) {
+        const completion = book.current_page / book.number_of_pages;
+        const matchesStatus = filterOptions.status.some(status => {
+          if (status === 'finished') return completion >= 1;
+          if (status === 'reading') return completion > 0 && completion < 1;
+          if (status === 'notStarted') return completion === 0;
+          return false;
+        });
+        if (!matchesStatus) return false;
+      }
+
+      // Book type filter
+      if (filterOptions.bookType && filterOptions.bookType.length > 0) {
+        if (!filterOptions.bookType.includes(book.book_type)) return false;
+      }
+
+      // Authors filter
+      if (filterOptions.authors && filterOptions.authors.length > 0) {
+        const matchesAuthor = filterOptions.authors.some(author => 
+          book.authors.includes(author)
+        );
+        if (!matchesAuthor) return false;
+      }
+
+      // Categories filter
+      if (filterOptions.categories && filterOptions.categories.length > 0) {
+        const matchesCategory = filterOptions.categories.some(category => 
+          book.categories.includes(category)
+        );
+        if (!matchesCategory) return false;
+      }
+
+      // Publishers filter
+      if (filterOptions.publishers && filterOptions.publishers.length > 0) {
+        const matchesPublisher = filterOptions.publishers.some(publisher => 
+          book.publishers.includes(publisher)
+        );
+        if (!matchesPublisher) return false;
+      }
+
+      return true;
+    });
 
     // Apply sorting
     filtered.sort((a, b) => {
@@ -206,6 +229,9 @@ export default function Library() {
           break;
         case 'dateAdded':
           comparison = new Date(a.date_added).getTime() - new Date(b.date_added).getTime();
+          break;
+        case 'stars':
+          comparison = (a.stars || 0) - (b.stars || 0);
           break;
       }
       
@@ -242,7 +268,13 @@ export default function Library() {
   };
 
   const clearFilter = () => {
-    setFilterOptions({ filterType: 'none', filterValue: '' });
+    setFilterOptions({
+      status: [],
+      bookType: [],
+      authors: [],
+      categories: [],
+      publishers: []
+    });
   };
 
   const renderBookItem = ({ item }: { item: Book }) => {
@@ -265,7 +297,7 @@ export default function Library() {
               ) : (
                 <View style={[styles.coverPlaceholder, { backgroundColor: theme.colors.surfaceVariant }]}>
                   <Text style={[styles.coverPlaceholderText, { color: theme.colors.onSurfaceVariant }]}>
-                    {t('library.noCover')}
+                <FontAwesome name="book" size={24} color={theme.colors.onSurface} />
                   </Text>
                 </View>
               )}
@@ -381,12 +413,75 @@ export default function Library() {
     >
       <Menu.Item 
         onPress={() => {
-          setFilterOptions({ filterType: 'none', filterValue: '' });
+          clearFilter();
           setFilterMenuVisible(false);
         }}
         title={t('library.noFilter')}
       />
       <Divider />
+      
+      {/* Reading Status Filter - moved to top */}
+      <Menu.Item title={t('library.filterByStatus')} disabled />
+      <Menu.Item
+        onPress={() => {
+          setFilterOptions(prev => ({
+            ...prev,
+            status: (prev.status || []).includes('reading') 
+              ? (prev.status || []).filter(s => s !== 'reading')
+              : [...(prev.status || []), 'reading']
+          }));
+          setFilterMenuVisible(false);
+        }}
+        title={`  ${t('library.currentlyReading')}`}
+      />
+      <Menu.Item
+        onPress={() => {
+          setFilterOptions(prev => ({
+            ...prev,
+            status: (prev.status || []).includes('finished') 
+              ? (prev.status || []).filter(s => s !== 'finished')
+              : [...(prev.status || []), 'finished']
+          }));
+          setFilterMenuVisible(false);
+        }}
+        title={`  ${t('library.finished')}`}
+      />
+      <Menu.Item
+        onPress={() => {
+          setFilterOptions(prev => ({
+            ...prev,
+            status: (prev.status || []).includes('notStarted') 
+              ? (prev.status || []).filter(s => s !== 'notStarted')
+              : [...(prev.status || []), 'notStarted']
+          }));
+          setFilterMenuVisible(false);
+        }}
+        title={`  ${t('library.notStarted')}`}
+      />
+      <Divider />
+      
+      {/* Book Type Filter */}
+      {availableBookTypes.length > 0 && (
+        <>
+          <Menu.Item title={t('library.filterByBookType')} disabled />
+          {availableBookTypes.map(bookType => (
+            <Menu.Item
+              key={bookType}
+              onPress={() => {
+                setFilterOptions(prev => ({
+                  ...prev,
+                  bookType: (prev.bookType || []).includes(bookType)
+                    ? (prev.bookType || []).filter(bt => bt !== bookType)
+                    : [...(prev.bookType || []), bookType]
+                }));
+                setFilterMenuVisible(false);
+              }}
+              title={`  ${bookType.charAt(0).toUpperCase() + bookType.slice(1)}`}
+            />
+          ))}
+          <Divider />
+        </>
+      )}
       
       {/* Author Filter */}
       {availableAuthors.length > 0 && (
@@ -396,7 +491,12 @@ export default function Library() {
             <Menu.Item
               key={author}
               onPress={() => {
-                setFilterOptions({ filterType: 'author', filterValue: author });
+                setFilterOptions(prev => ({
+                  ...prev,
+                  authors: (prev.authors || []).includes(author)
+                    ? (prev.authors || []).filter(a => a !== author)
+                    : [...(prev.authors || []), author]
+                }));
                 setFilterMenuVisible(false);
               }}
               title={`  ${author}`}
@@ -414,39 +514,19 @@ export default function Library() {
             <Menu.Item
               key={category}
               onPress={() => {
-                setFilterOptions({ filterType: 'category', filterValue: category });
+                setFilterOptions(prev => ({
+                  ...prev,
+                  categories: (prev.categories || []).includes(category)
+                    ? (prev.categories || []).filter(c => c !== category)
+                    : [...(prev.categories || []), category]
+                }));
                 setFilterMenuVisible(false);
               }}
               title={`  ${category}`}
             />
           ))}
-          <Divider />
         </>
       )}
-      
-      {/* Status Filter */}
-      <Menu.Item title={t('library.filterByStatus')} disabled />
-      <Menu.Item
-        onPress={() => {
-          setFilterOptions({ filterType: 'status', filterValue: 'reading' });
-          setFilterMenuVisible(false);
-        }}
-        title={`  ${t('library.currentlyReading')}`}
-      />
-      <Menu.Item
-        onPress={() => {
-          setFilterOptions({ filterType: 'status', filterValue: 'finished' });
-          setFilterMenuVisible(false);
-        }}
-        title={`  ${t('library.finished')}`}
-      />
-      <Menu.Item
-        onPress={() => {
-          setFilterOptions({ filterType: 'status', filterValue: 'notStarted' });
-          setFilterMenuVisible(false);
-        }}
-        title={`  ${t('library.notStarted')}`}
-      />
     </Menu>
   );
 
@@ -509,6 +589,20 @@ export default function Library() {
         }}
         title={t('library.oldestFirst')}
       />
+      <Menu.Item
+        onPress={() => {
+          setSortOptions({ sortBy: 'stars', sortOrder: 'desc' });
+          setSortMenuVisible(false);
+        }}
+        title={t('library.starsDesc')}
+      />
+      <Menu.Item
+        onPress={() => {
+          setSortOptions({ sortBy: 'stars', sortOrder: 'asc' });
+          setSortMenuVisible(false);
+        }}
+        title={t('library.starsAsc')}
+      />
     </Menu>
   );
 
@@ -539,18 +633,92 @@ export default function Library() {
           {renderFilterMenu()}
           {renderSortMenu()}
         </View>
-        
-        {/* Active Filter Chip */}
-        {filterOptions.filterType !== 'none' && (
+      </View>
+      
+      {/* Active Filter Chips - Separate Row */}
+      {((filterOptions.status?.length || 0) + 
+        (filterOptions.bookType?.length || 0) + 
+        (filterOptions.authors?.length || 0) + 
+        (filterOptions.categories?.length || 0)) > 0 && (
+        <View style={styles.activeFiltersContainer}>
+        {/* Status filters */}
+        {(filterOptions.status || []).map(status => (
           <Chip
-            onClose={clearFilter}
+            key={`status-${status}`}
+            onClose={() => {
+              setFilterOptions(prev => ({
+                ...prev,
+                status: (prev.status || []).filter(s => s !== status)
+              }));
+            }}
             style={[styles.filterChip, { backgroundColor: theme.colors.primaryContainer }]}
             textStyle={styles.filterChipText}
           >
-            {filterOptions.filterValue}
+            {t(`library.${status}`)}
           </Chip>
-        )}
+        ))}
+        
+        {/* Book type filters */}
+        {(filterOptions.bookType || []).map(bookType => (
+          <Chip
+            key={`bookType-${bookType}`}
+            onClose={() => {
+              setFilterOptions(prev => ({
+                ...prev,
+                bookType: (prev.bookType || []).filter(bt => bt !== bookType)
+              }));
+            }}
+            style={[styles.filterChip, { backgroundColor: theme.colors.secondaryContainer }]}
+            textStyle={styles.filterChipText}
+          >
+            {bookType.charAt(0).toUpperCase() + bookType.slice(1)}
+          </Chip>
+        ))}
+        
+        {/* Author filters */}
+        {(filterOptions.authors || []).map(author => (
+          <Chip
+            key={`author-${author}`}
+            onClose={() => {
+              setFilterOptions(prev => ({
+                ...prev,
+                authors: (prev.authors || []).filter(a => a !== author)
+              }));
+            }}
+            style={[styles.filterChip, { backgroundColor: theme.colors.tertiaryContainer }]}
+            textStyle={styles.filterChipText}
+          >
+            {author}
+          </Chip>
+        ))}
+        
+        {/* Category filters with different colors */}
+        {(filterOptions.categories || []).map((category, index) => {
+          const categoryColors = [
+            theme.colors.primaryContainer,
+            theme.colors.secondaryContainer, 
+            theme.colors.tertiaryContainer,
+            theme.colors.errorContainer,
+            theme.colors.surfaceVariant,
+          ];
+          return (
+            <Chip
+              key={`category-${category}`}
+              onClose={() => {
+                setFilterOptions(prev => ({
+                  ...prev,
+                  categories: (prev.categories || []).filter(c => c !== category)
+                }));
+              }}
+              style={[styles.filterChip, { backgroundColor: categoryColors[index % categoryColors.length] }]}
+              textStyle={styles.filterChipText}
+            >
+              {category}
+            </Chip>
+          );
+        })}
       </View>
+      )}
       
       {/* Books List */}
       {filteredBooks.length === 0 ? (
@@ -614,30 +782,38 @@ const styles = StyleSheet.create({
     paddingVertical: scale(12),
     gap: scale(8),
     alignItems: 'center',
-    marginBottom: scale(16),
+    marginBottom: scale(8),
   },
   buttonsRow: {
     flexDirection: 'row',
     gap: scale(8),
     alignItems: 'center',
-    flex: 1,
-  },
-  filterButton: {
-    flex: 1,
-    minHeight: scale(40),
-    borderWidth: 0,
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
   },
   sortButton: {
-    flex: 1,
     minHeight: scale(40),
     borderWidth: 0,
   },
+  filterButton: {
+    minHeight: scale(40),
+    borderWidth: 0,
+  },
+
   filterChip: {
     marginLeft: scale(8),
     flexShrink: 0,
   },
   filterChipText: {
     fontSize: scale(12),
+  },
+  activeFiltersContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: scale(16),
+    paddingBottom: scale(8),
+    paddingTop: scale(8),
+    gap: scale(8),
   },
   listContainer: {
     padding: scale(16),
@@ -706,7 +882,7 @@ const styles = StyleSheet.create({
   starsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: scale(8),
+    marginBottom: scale(15),
   },
   star: {
     fontSize: scale(16),

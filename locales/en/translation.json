@@ -50,6 +50,7 @@
     "noFilter": "No Filter",
     "filterByAuthor": "Filter by Author",
     "filterByCategory": "Filter by Category",
+    "filterByBookType": "Filter by Book Type",
     "filterByStatus": "Filter by Status",
     "currentlyReading": "Currently Reading",
     "finished": "Finished",
@@ -60,6 +61,8 @@
     "completionDesc": "Most Complete First",
     "newestFirst": "Newest First",
     "oldestFirst": "Oldest First",
+    "starsDesc": "Most Stars First",
+    "starsAsc": "Least Stars First",
     "noCover": "No Cover",
     "unknownAuthor": "Unknown Author",
     "pages": "pages"

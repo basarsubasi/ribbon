@@ -517,9 +517,13 @@ export default function LibraryBookDetails() {
                 style={[styles.coverPlaceholder, { backgroundColor: theme.colors.surfaceVariant }]}
                 onPress={pickImage}
               >
-                <Text style={[styles.coverPlaceholderText, { color: theme.colors.onSurfaceVariant }]}>
-                  {t('addBook.addCover')}
-                </Text>
+                <IconButton
+                  icon="camera-plus"
+                  size={scale(40)}
+                  iconColor={theme.colors.primary}
+                />
+
+              
               </TouchableOpacity>
             )}
             
@@ -588,6 +592,20 @@ export default function LibraryBookDetails() {
             {t('addBook.authors')}
           </Text>
           
+          
+          
+          <View style={styles.chipsContainer}>
+            {authors.map((author) => (
+              <Chip
+                key={author}
+                onClose={() => removeAuthor(author)}
+                style={styles.chip}
+              >
+                {author}
+              </Chip>
+            ))}
+          </View>
+
           <Menu
             visible={authorMenuVisible}
             onDismiss={() => setAuthorMenuVisible(false)}
@@ -633,18 +651,6 @@ export default function LibraryBookDetails() {
               )}
             </View>
           </Menu>
-          
-          <View style={styles.chipsContainer}>
-            {authors.map((author) => (
-              <Chip
-                key={author}
-                onClose={() => removeAuthor(author)}
-                style={styles.chip}
-              >
-                {author}
-              </Chip>
-            ))}
-          </View>
         </Surface>
 
         {/* Categories */}
@@ -885,6 +891,7 @@ export default function LibraryBookDetails() {
           disabled={saving}
           style={styles.saveButton}
           contentStyle={styles.saveButtonContent}
+          textColor={'#FFFFFF'}
         >
           Update Book
         </Button>
@@ -938,6 +945,7 @@ const styles = StyleSheet.create({
   },
   addButton: {
     marginBottom: scale(12),
+    marginTop: scale(12),
   },
   menuContent: {
     padding: scale(8),
