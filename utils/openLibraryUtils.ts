@@ -42,6 +42,8 @@ export interface ProcessedBookData {
   openLibraryKey: string;
   selectedPublishers?: string[];
   selectedCategories?: string[];
+  // Flag indicating if full detail fetch has been applied
+  enriched?: boolean;
 }
 
 const OPENLIBRARY_BASE_URL = 'https://openlibrary.org';
@@ -94,12 +96,12 @@ export async function searchBooksByISBN(isbn: string): Promise<OpenLibrarySearch
 /**
  * Get detailed book information by OpenLibrary key
  */
-export async function getBookDetails(bookKey: string): Promise<OpenLibraryBookDetails> {
+export async function getBookDetails(bookKey: string, signal?: AbortSignal): Promise<OpenLibraryBookDetails> {
   try {
     // Remove leading slash if present
     const cleanKey = bookKey.startsWith('/') ? bookKey : `/${bookKey}`;
     
-    const response = await fetch(`${OPENLIBRARY_BASE_URL}${cleanKey}.json`);
+  const response = await fetch(`${OPENLIBRARY_BASE_URL}${cleanKey}.json`, { signal });
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -113,7 +115,7 @@ export async function getBookDetails(bookKey: string): Promise<OpenLibraryBookDe
         try {
           const authorKey = typeof author === 'string' ? author : author.author?.key || author.key;
           if (authorKey) {
-            const authorResponse = await fetch(`${OPENLIBRARY_BASE_URL}${authorKey}.json`);
+            const authorResponse = await fetch(`${OPENLIBRARY_BASE_URL}${authorKey}.json`, { signal });
             const authorData = await authorResponse.json();
             return {
               name: authorData.name || 'Unknown Author',
@@ -238,6 +240,48 @@ export function processBookData(searchResult: OpenLibrarySearchResult, bookDetai
   }
 
   return processed;
+}
+
+/**
+ * Process only the search result (no details fetch) for fast listing.
+ */
+export function processSearchResultFast(searchResult: OpenLibrarySearchResult): ProcessedBookData {
+  return processBookData(searchResult); // processBookData already handles absence of details gracefully
+}
+
+/**
+ * Perform a fast search returning minimally processed items (no per-result detail calls).
+ */
+export async function searchBooksFast(query: string, limit: number = 10): Promise<ProcessedBookData[]> {
+  const results = await searchBooks(query, limit);
+  return results.map(r => processSearchResultFast(r));
+}
+
+/**
+ * Enrich a single processed book by fetching full details (description, precise pages, covers, etc.).
+ */
+export async function enrichProcessedBook(book: ProcessedBookData, signal?: AbortSignal): Promise<ProcessedBookData> {
+  try {
+    const details = await getBookDetails(book.openLibraryKey, signal);
+    const enriched = processBookData({
+      key: book.openLibraryKey,
+      title: book.title,
+      author_name: book.authors,
+      first_publish_year: book.publishYear,
+      isbn: book.isbn_13 ? [book.isbn_13] : (book.isbn_10 ? [book.isbn_10] : undefined),
+      cover_i: details.covers && details.covers.length > 0 ? details.covers[0] : undefined,
+      publisher: book.publishers,
+      subject: book.subjects,
+      number_of_pages_median: book.numberOfPages,
+    }, details);
+    enriched.enriched = true;
+    return enriched;
+  } catch (e) {
+    if ((e as any)?.name === 'AbortError') {
+      return { ...book, enriched: false }; // silently return
+    }
+    return { ...book, enriched: false };
+  }
 }
 
 /**

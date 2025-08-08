@@ -35,6 +35,7 @@ import {
   getCoverImageUri,
   initializeImageDirectories 
 } from '../../utils/imageUtils';
+import * as FileSystem from 'expo-file-system';
 
 type LibraryBookDetailsRouteProp = RouteProp<LibraryStackParamList, 'LibraryBookDetails'>;
 type LibraryBookDetailsNavigationProp = StackNavigationProp<LibraryStackParamList, 'LibraryBookDetails'>;
@@ -155,8 +156,23 @@ export default function LibraryBookDetails() {
       `, [bookId]);
 
       if (bookResult) {
+        // Check if stored local cover path is stale (file deleted). If so, null it in DB.
+        let effectiveCoverPath = bookResult.cover_path;
+        if (effectiveCoverPath && !effectiveCoverPath.startsWith('http')) {
+          try {
+            const info = await FileSystem.getInfoAsync(effectiveCoverPath);
+            if (!info.exists) {
+              await db.runAsync('UPDATE books SET cover_path = NULL WHERE book_id = ?', [bookId]);
+              effectiveCoverPath = null;
+            }
+          } catch (e) {
+            console.warn('Cover path check failed', e);
+          }
+        }
+
         const book: LibraryBook = {
           ...bookResult,
+          cover_path: effectiveCoverPath,
           authors: bookResult.authors ? bookResult.authors.split(',') : [],
           categories: bookResult.categories ? bookResult.categories.split(',') : [],
           publishers: bookResult.publishers ? bookResult.publishers.split(',') : []
@@ -174,8 +190,8 @@ export default function LibraryBookDetails() {
         setStars(book.stars || 0);
         setPrice(book.price?.toString() || '');
         setCoverUrl(book.cover_url || '');
-        setCoverImage(book.cover_path || book.cover_url || '');
-        setOriginalCoverPath(book.cover_path || '');  // Store original for cleanup
+  setCoverImage(book.cover_path || book.cover_url || '');
+  setOriginalCoverPath(book.cover_path || '');  // Store original for cleanup
         setAuthors(book.authors);
         setCategories(book.categories);
         setPublishers(book.publishers);
@@ -383,6 +399,41 @@ export default function LibraryBookDetails() {
     } catch (error) {
       console.error('Error updating book:', error);
       Alert.alert(t('addBook.error'), 'Failed to update the book. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const confirmDeleteBook = () => {
+    Alert.alert(
+      'Delete Book',
+      'Are you sure you want to delete this book? This action cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Delete', style: 'destructive', onPress: deleteBook }
+      ]
+    );
+  };
+
+  const deleteBook = async () => {
+    try {
+      setSaving(true);
+      try { await db.execAsync('PRAGMA foreign_keys = ON;'); } catch (_) {}
+      // Re-fetch cover path to be safe
+      try {
+        const row = await db.getFirstAsync<{ cover_path?: string }>('SELECT cover_path FROM books WHERE book_id = ?', [bookId]);
+        const pathToDelete = row?.cover_path || originalCoverPath;
+        if (pathToDelete) {
+          try { await deleteOldCover(pathToDelete); } catch (e) { console.warn('Failed to delete cover file', e); }
+        }
+      } catch (e) {
+        console.warn('Could not re-fetch cover_path before delete', e);
+      }
+      await db.runAsync('DELETE FROM books WHERE book_id = ?', [bookId]);
+      Alert.alert('Deleted', 'Book has been deleted.', [ { text: 'OK', onPress: () => navigation.goBack() } ]);
+    } catch (error) {
+      console.error('Error deleting book:', error);
+      Alert.alert('Error', 'Failed to delete the book. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -896,20 +947,31 @@ export default function LibraryBookDetails() {
           </Text>
           {renderStars()}
         </Surface>
-
-        {/* Update Button (wrapped for consistent spacing like AddBook) */}
+        {/* Action Buttons Row (non-sticky) */}
         <View style={styles.saveButtonContainer}>
-          <Button
-            mode="contained"
-            onPress={updateBook}
-            loading={saving}
-            disabled={saving}
-            style={styles.saveButton}
-            contentStyle={styles.saveButtonContent}
-            textColor={'#FFFFFF'}
-          >
-            Update Book
-          </Button>
+          <View style={styles.actionButtonsRow}>
+            <Button
+              mode="contained"
+              onPress={updateBook}
+              loading={saving}
+              disabled={saving}
+              style={styles.saveButton}
+              contentStyle={styles.saveButtonContent}
+              textColor={'#FFFFFF'}
+            >
+              Update Book
+            </Button>
+            <Button
+              mode="contained"
+              onPress={confirmDeleteBook}
+              disabled={saving}
+              style={[styles.saveButton, styles.deleteButton]}
+              contentStyle={styles.saveButtonContent}
+              textColor={'#FFFFFF'}
+              buttonColor={theme.colors.error}            >
+              Delete
+            </Button>
+          </View>
         </View>
       </ScrollView>
     </View>
@@ -947,8 +1009,11 @@ const styles = StyleSheet.create({
   coverPlaceholderText: { textAlign: 'center', fontSize: scale(14) },
   removeCoverButton: { position: 'absolute', top: -scale(10), right: -scale(10) },
   changeCoverButton: { marginTop: scale(8) },
-  saveButtonContainer: { margin: scale(16), marginBottom: scale(32) },
-  saveButton: { paddingVertical: scale(4), borderRadius: scale(8) },
+  saveButtonContainer: { margin: scale(16), marginTop: 0 },
+  actionButtonsRow: { flexDirection: 'row', gap: scale(12) },
+  saveButton: { paddingVertical: scale(4), borderRadius: scale(8), flex: 1 },
   saveButtonContent: { height: scale(48) },
   loadingText: { marginTop: scale(16), fontSize: scale(16) },
+  footer: {},
+  deleteButton: {},
 });

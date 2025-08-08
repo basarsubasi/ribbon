@@ -85,7 +85,7 @@ const Home = () => {
                 height={scale(40)} 
                 primaryColor={theme.colors.primary}
                 secondaryColor={theme.colors.primaryContainer}
-                accentColor={theme.colors.secondary}
+                accentColor={theme.colors.primary}
               />
               <Text variant="headlineLarge" style={[styles.appName, { color: theme.colors.primary }]}>
                 ribbon

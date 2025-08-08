@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { View, StyleSheet, FlatList, Alert, Image } from 'react-native';
 import {
   Text,
@@ -15,7 +15,9 @@ import { useTranslation } from 'react-i18next';
 import { scale, verticalScale } from 'react-native-size-matters';
 import { 
   searchAndGetBookDetails, 
-  ProcessedBookData 
+  ProcessedBookData,
+  searchBooksFast,
+  enrichProcessedBook
 } from '../../utils/openLibraryUtils';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { LibraryStackParamList } from '../../utils/types';
@@ -31,6 +33,47 @@ export default function SearchBook() {
   const [searchResults, setSearchResults] = useState<ProcessedBookData[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const abortRef = useRef<AbortController | null>(null);
+  const [enrichingIds, setEnrichingIds] = useState<Set<string>>(new Set());
+
+  const startEnrichment = (items: ProcessedBookData[]) => {
+    // Cancel previous
+    if (abortRef.current) {
+      abortRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortRef.current = controller;
+    const signal = controller.signal;
+
+    // Concurrency control
+    const queue = [...items];
+    const maxConcurrent = 4;
+    let active = 0;
+
+    const runNext = () => {
+      if (signal.aborted) return;
+      if (queue.length === 0) return;
+      if (active >= maxConcurrent) return;
+      const book = queue.shift()!;
+      active++;
+      setEnrichingIds(prev => new Set(prev).add(book.openLibraryKey));
+      enrichProcessedBook(book, signal).then(enriched => {
+        if (!signal.aborted) {
+          setSearchResults(prev => prev.map(p => p.openLibraryKey === enriched.openLibraryKey ? enriched : p));
+        }
+      }).finally(() => {
+        active--;
+        setEnrichingIds(prev => {
+          const copy = new Set(prev);
+          copy.delete(book.openLibraryKey);
+          return copy;
+        });
+        runNext();
+      });
+      runNext();
+    };
+    for (let i = 0; i < maxConcurrent; i++) runNext();
+  };
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
@@ -41,8 +84,10 @@ export default function SearchBook() {
     setHasSearched(true);
     
     try {
-      const results = await searchAndGetBookDetails(searchQuery.trim(), 20);
-      setSearchResults(results);
+      // Fast initial results (no detail fetch per item)
+  const fast = await searchBooksFast(searchQuery.trim(), 20);
+  setSearchResults(fast);
+  startEnrichment(fast);
     } catch (error) {
       console.error('Error searching books:', error);
       Alert.alert(
@@ -90,6 +135,14 @@ export default function SearchBook() {
               numberOfLines={2}
             >
               {item.title}
+              {enrichingIds.has(item.openLibraryKey) && (
+                <ActivityIndicator 
+                  style={styles.inlineSpinner}
+                  size={16}
+                  animating
+                  color={theme.colors.primary}
+                />
+              )}
             </Text>
             
             {item.authors.length > 0 && (
@@ -284,6 +337,10 @@ const styles = StyleSheet.create({
   bookTitle: {
     fontWeight: '600',
     marginBottom: verticalScale(4),
+  },
+  inlineSpinner: {
+    marginLeft: scale(6),
+    transform: [{ translateY: 2 }],
   },
   bookAuthor: {
     opacity: 0.8,
