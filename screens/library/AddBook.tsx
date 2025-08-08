@@ -71,6 +71,7 @@ export default function AddBook() {
   const [bookType, setBookType] = useState('paperback');
   const [title, setTitle] = useState('');
   const [numberOfPages, setNumberOfPages] = useState('');
+  const [currentPage, setCurrentPage] = useState('0');
   const [isbnValue, setIsbnValue] = useState('');
   const [yearPublished, setYearPublished] = useState('');
   const [review, setReview] = useState('');
@@ -434,6 +435,15 @@ export default function AddBook() {
       return false;
     }
     
+    if (currentPage && parseInt(currentPage) < 0) {
+      Alert.alert(t('addBook.validationError'), t('addBook.currentPageInvalid') || 'Current page cannot be negative');
+      return false;
+    }
+    if (currentPage && numberOfPages && parseInt(currentPage) > parseInt(numberOfPages)) {
+      Alert.alert(t('addBook.validationError'), t('addBook.currentPageTooHigh') || 'Current page cannot exceed total pages');
+      return false;
+    }
+    
     if (authors.length === 0) {
       Alert.alert(t('addBook.validationError'), t('addBook.authorRequired'));
       return false;
@@ -454,15 +464,16 @@ export default function AddBook() {
       // Insert book
       const bookResult = await db.runAsync(`
         INSERT INTO books (
-          book_type, title, cover_url, cover_path, number_of_pages, isbn, 
+          book_type, title, cover_url, cover_path, number_of_pages, current_page, isbn, 
           openlibrary_code, year_published, review, notes, stars, price
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `, [
         bookType,
         title.trim(),
         coverUrl || null,
         localCoverPath || null,
         parseInt(numberOfPages),
+        currentPage ? parseInt(currentPage) : 0,
         isbnValue.trim() || null,
         bookData?.openLibraryKey || null,
         yearPublished ? parseInt(yearPublished) : null,
@@ -520,13 +531,11 @@ export default function AddBook() {
       {/* Cover Section (Surface styled) */}
       {renderCoverSection()}
 
-      {/* Basic Information */}
+      {/* Book Type */}
       <Surface style={[styles.section, { backgroundColor: theme.colors.surface }]} elevation={1}>
         <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>
-          {t('addBook.basicInfo')}
+          {t('addBook.bookType')}
         </Text>
-        
-        {/* Book Type */}
         <Menu
           visible={bookTypeMenuVisible}
           onDismiss={() => setBookTypeMenuVisible(false)}
@@ -554,8 +563,13 @@ export default function AddBook() {
             />
           ))}
         </Menu>
+      </Surface>
 
-        {/* Title */}
+      {/* Title */}
+      <Surface style={[styles.section, { backgroundColor: theme.colors.surface }]} elevation={1}>
+        <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>
+          {t('addBook.title')}
+        </Text>
         <TextInput
           mode="outlined"
           label={t('addBook.title')}
@@ -563,36 +577,8 @@ export default function AddBook() {
           onChangeText={setTitle}
           style={styles.textInput}
         />
-
-        {/* Number of Pages */}
-        <TextInput
-          mode="outlined"
-          label={t('addBook.numberOfPages')}
-          value={numberOfPages}
-          onChangeText={setNumberOfPages}
-          keyboardType="numeric"
-          style={styles.textInput}
-        />
-
-        {/* ISBN */}
-        <TextInput
-          mode="outlined"
-          label={t('addBook.isbn')}
-          value={isbnValue}
-          onChangeText={setIsbnValue}
-          style={styles.textInput}
-        />
-
-        {/* Year Published */}
-        <TextInput
-          mode="outlined"
-          label={t('addBook.yearPublished')}
-          value={yearPublished}
-          onChangeText={setYearPublished}
-          keyboardType="numeric"
-          style={styles.textInput}
-        />
       </Surface>
+
 
       {/* Authors Section */}
       <Surface style={[styles.section, { backgroundColor: theme.colors.surface }]} elevation={1}>
@@ -813,13 +799,69 @@ export default function AddBook() {
         </Menu>
       </Surface>
 
-      {/* Review & Rating Section */}
+      {/* Book Details (moved below publishers) */}
+      <Surface style={[styles.section, { backgroundColor: theme.colors.surface }]} elevation={1}>
+        <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>
+          {t('addBook.basicInfo')}
+        </Text>
+        <View style={styles.row}>
+          <View style={styles.halfWidth}>
+            <TextInput
+              mode="outlined"
+              label={t('addBook.numberOfPages')}
+              value={numberOfPages}
+              onChangeText={setNumberOfPages}
+              keyboardType="numeric"
+              style={styles.textInput}
+            />
+          </View>
+          <View style={styles.halfWidth}>
+            <TextInput
+              mode="outlined"
+              label={t('addBook.currentPage') || t('bookDetails.currentPage')}
+              value={currentPage}
+              onChangeText={setCurrentPage}
+              keyboardType="numeric"
+              style={styles.textInput}
+            />
+          </View>
+        </View>
+        <TextInput
+          mode="outlined"
+          label={t('addBook.isbn')}
+          value={isbnValue}
+          onChangeText={setIsbnValue}
+          style={styles.textInput}
+        />
+        <View style={styles.row}>
+          <View style={styles.halfWidth}>
+            <TextInput
+              mode="outlined"
+              label={t('addBook.yearPublished')}
+              value={yearPublished}
+              onChangeText={setYearPublished}
+              keyboardType="numeric"
+              style={styles.textInput}
+            />
+          </View>
+          <View style={styles.halfWidth}>
+            <TextInput
+              mode="outlined"
+              label={t('addBook.price')}
+              value={price}
+              onChangeText={setPrice}
+              keyboardType="numeric"
+              style={styles.textInput}
+            />
+          </View>
+        </View>
+      </Surface>
+
+      {/* Review & Notes Section (without price, mirroring LibraryBookDetails) */}
       <Surface style={[styles.section, { backgroundColor: theme.colors.surface }]} elevation={1}>
         <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>
           {t('addBook.reviewNotes')}
         </Text>
-        
-        {/* Review */}
         <TextInput
           mode="outlined"
           label={t('addBook.review')}
@@ -827,10 +869,8 @@ export default function AddBook() {
           onChangeText={setReview}
           multiline
           numberOfLines={3}
-          style={styles.textInput}
+          style={[styles.textInput, styles.textArea]}
         />
-
-        {/* Notes */}
         <TextInput
           mode="outlined"
           label={t('addBook.notes')}
@@ -838,17 +878,7 @@ export default function AddBook() {
           onChangeText={setNotes}
           multiline
           numberOfLines={3}
-          style={styles.textInput}
-        />
-
-        {/* Price */}
-        <TextInput
-          mode="outlined"
-          label={t('addBook.price')}
-          value={price}
-          onChangeText={setPrice}
-          keyboardType="numeric"
-          style={styles.textInput}
+          style={[styles.textInput, styles.textArea]}
         />
       </Surface>
 
@@ -941,6 +971,16 @@ const styles = StyleSheet.create({
   },
   textInput: {
     marginBottom: scale(12),
+  },
+  textArea: {
+    minHeight: scale(80),
+  },
+  row: {
+    flexDirection: 'row',
+    gap: scale(12),
+  },
+  halfWidth: {
+    flex: 1,
   },
   fieldLabel: {
     marginBottom: scale(8),

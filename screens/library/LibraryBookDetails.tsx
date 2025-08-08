@@ -584,9 +584,9 @@ export default function LibraryBookDetails() {
           </Text>
           <TextInput
             mode="outlined"
+            label={t('addBook.title')}
             value={title}
             onChangeText={setTitle}
-            placeholder={t('addBook.titlePlaceholder')}
             style={styles.input}
           />
         </Surface>
@@ -862,17 +862,11 @@ export default function LibraryBookDetails() {
           </View>
         </Surface>
 
-        {/* Rating & Review */}
+        {/* Review & Notes (without stars) */}
         <Surface style={[styles.section, { backgroundColor: theme.colors.surface }]} elevation={1}>
           <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>
             {t('addBook.reviewNotes')}
           </Text>
-          
-          <Text variant="bodyMedium" style={[styles.label, { color: theme.colors.onSurface }]}>
-            {t('addBook.rating')}
-          </Text>
-          {renderStars()}
-
           <TextInput
             mode="outlined"
             label={t('addBook.review')}
@@ -883,7 +877,6 @@ export default function LibraryBookDetails() {
             numberOfLines={3}
             style={[styles.input, styles.textArea]}
           />
-
           <TextInput
             mode="outlined"
             label={t('addBook.notes')}
@@ -896,149 +889,66 @@ export default function LibraryBookDetails() {
           />
         </Surface>
 
-        {/* Update Button */}
-        <Button
-          mode="contained"
-          onPress={updateBook}
-          loading={saving}
-          disabled={saving}
-          style={styles.saveButton}
-          contentStyle={styles.saveButtonContent}
-          textColor={'#FFFFFF'}
-        >
-          Update Book
-        </Button>
+        {/* Rating (moved to its own section at bottom like AddBook) */}
+        <Surface style={[styles.section, { backgroundColor: theme.colors.surface }]} elevation={1}>
+          <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>
+            {t('addBook.rating')}
+          </Text>
+          {renderStars()}
+        </Surface>
+
+        {/* Update Button (wrapped for consistent spacing like AddBook) */}
+        <View style={styles.saveButtonContainer}>
+          <Button
+            mode="contained"
+            onPress={updateBook}
+            loading={saving}
+            disabled={saving}
+            style={styles.saveButton}
+            contentStyle={styles.saveButtonContent}
+            textColor={'#FFFFFF'}
+          >
+            Update Book
+          </Button>
+        </View>
       </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  centered: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: scale(16),
-    paddingBottom: scale(32),
-  },
-  section: {
-    borderRadius: scale(12),
-    padding: scale(16),
-    marginBottom: scale(16),
-  },
-  sectionTitle: {
-    fontWeight: '600',
-    marginBottom: scale(12),
-  },
-  input: {
-    marginBottom: scale(8),
-  },
-  textArea: {
-    minHeight: scale(80),
-  },
-  row: {
-    flexDirection: 'row',
-    gap: scale(12),
-  },
-  halfWidth: {
-    flex: 1,
-  },
-  menuButton: {
-    marginBottom: scale(8),
-  },
-  menuButtonContent: {
-    height: scale(48),
-  },
-  addButton: {
-    marginBottom: scale(12),
-    marginTop: scale(12),
-  },
-  menuContent: {
-    padding: scale(8),
-    maxWidth: scale(300),
-  },
-  menuInput: {
-    marginBottom: scale(8),
-  },
-  menuDivider: {
-    marginBottom: scale(8),
-  },
-  chipsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: scale(8),
-  },
-  chip: {
-    marginBottom: scale(4),
-  },
-  starsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: scale(16),
-  },
-  star: {
-    fontSize: scale(32),
-    marginRight: scale(4),
-  },
-  clearStarsButton: {
-    marginLeft: scale(12),
-    padding: scale(4),
-  },
-  clearStarsText: {
-    fontSize: scale(12),
-  },
-  label: {
-    marginBottom: scale(8),
-  },
-  coverSection: {
-    alignItems: 'center',
-  },
-  coverContainer: {
-    position: 'relative',
-    marginBottom: scale(12),
-  },
-  coverImage: {
-    width: COVER_WIDTH,
-    height: COVER_HEIGHT,
-    borderRadius: scale(8),
-  },
-  coverPlaceholder: {
-    width: COVER_WIDTH,
-    height: COVER_HEIGHT,
-    borderRadius: scale(8),
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: scale(12),
-    borderWidth: 2,
-    borderStyle: 'dashed',
-  },
-  coverPlaceholderText: {
-    textAlign: 'center',
-    fontSize: scale(14),
-  },
-  removeCoverButton: {
-    position: 'absolute',
-    top: -scale(10),
-    right: -scale(10),
-  },
-  changeCoverButton: {
-    marginTop: scale(8),
-  },
-  saveButton: {
-    marginTop: scale(16),
-  },
-  saveButtonContent: {
-    height: scale(48),
-  },
-  loadingText: {
-    marginTop: scale(16),
-    fontSize: scale(16),
-  },
+  container: { flex: 1 },
+  centered: { justifyContent: 'center', alignItems: 'center' },
+  scrollView: { flex: 1 },
+  scrollContent: { padding: scale(16), paddingBottom: scale(32) },
+  section: { margin: scale(16), marginTop: scale(8), padding: scale(16), borderRadius: scale(12) },
+  sectionTitle: { fontWeight: '600', marginBottom: scale(16) },
+  input: { marginBottom: scale(12) },
+  textArea: { minHeight: scale(80) },
+  row: { flexDirection: 'row', gap: scale(12) },
+  halfWidth: { flex: 1 },
+  menuButton: { marginBottom: scale(8) },
+  menuButtonContent: { height: scale(48) },
+  addButton: { marginBottom: scale(8), marginTop: scale(12) },
+  menuContent: { padding: scale(8), maxWidth: scale(300) },
+  menuInput: { marginBottom: scale(8), flex: 1 },
+  menuDivider: { marginBottom: scale(8) },
+  chipsContainer: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: scale(12), gap: scale(8) },
+  chip: { marginRight: scale(4), marginBottom: scale(4) },
+  starsContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: scale(12) },
+  star: { fontSize: scale(24) },
+  clearStarsButton: { marginLeft: scale(12), padding: scale(4) },
+  clearStarsText: { fontSize: scale(12) },
+  label: { marginBottom: scale(8) },
+  coverSection: { alignItems: 'center' },
+  coverContainer: { position: 'relative', marginBottom: scale(12), width: COVER_WIDTH, height: COVER_HEIGHT },
+  coverImage: { width: COVER_WIDTH, height: COVER_HEIGHT, borderRadius: scale(8) },
+  coverPlaceholder: { width: COVER_WIDTH, height: COVER_HEIGHT, borderRadius: scale(8), justifyContent: 'center', alignItems: 'center', marginBottom: scale(12), borderWidth: 2, borderStyle: 'dashed' },
+  coverPlaceholderText: { textAlign: 'center', fontSize: scale(14) },
+  removeCoverButton: { position: 'absolute', top: -scale(10), right: -scale(10) },
+  changeCoverButton: { marginTop: scale(8) },
+  saveButtonContainer: { margin: scale(16), marginBottom: scale(32) },
+  saveButton: { paddingVertical: scale(4), borderRadius: scale(8) },
+  saveButtonContent: { height: scale(48) },
+  loadingText: { marginTop: scale(16), fontSize: scale(16) },
 });
