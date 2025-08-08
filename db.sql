@@ -9,7 +9,6 @@ CREATE TABLE books (
     number_of_pages INTEGER NOT NULL,
     isbn_13 TEXT UNIQUE,
     openlibrary_code TEXT UNIQUE, 
-    year_written INTEGER,
     year_published INTEGER,
     date_added DATE DEFAULT CURRENT_DATE, 
     last_read  TIMESTAMP,

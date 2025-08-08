@@ -13,7 +13,8 @@ import {
   Button,
   Chip,
   Divider,
-  ActivityIndicator
+  ActivityIndicator,
+  Menu
 } from 'react-native-paper';
 import { useTheme } from '../../context/ThemeContext';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -39,6 +40,12 @@ export default function BookDetails() {
   const [book, setBook] = useState<Book | ProcessedBookData | null>(null);
   const [loading, setLoading] = useState(true);
   const [isLibraryBook, setIsLibraryBook] = useState(false);
+  
+  // Dropdown states
+  const [selectedPublishers, setSelectedPublishers] = useState<string[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [publisherMenuVisible, setPublisherMenuVisible] = useState(false);
+  const [categoryMenuVisible, setCategoryMenuVisible] = useState(false);
 
   const { bookId, bookData } = route.params;
 
@@ -48,6 +55,17 @@ export default function BookDetails() {
       setBook(bookData);
       setIsLibraryBook(false);
       setLoading(false);
+      
+      // Set initial dropdown values (first alphabetically)
+      const publishedBookData = bookData as ProcessedBookData;
+      if (publishedBookData.publishers && publishedBookData.publishers.length > 0) {
+        const sortedPublishers = [...publishedBookData.publishers].sort();
+        setSelectedPublishers([sortedPublishers[0]]);
+      }
+      if (publishedBookData.subjects && publishedBookData.subjects.length > 0) {
+        const sortedSubjects = [...publishedBookData.subjects].sort();
+        setSelectedCategories([sortedSubjects[0]]);
+      }
     } else if (bookId) {
       // This is a book from the user's library - we'd need to fetch it from database
       // For now, we'll show a placeholder
@@ -59,8 +77,45 @@ export default function BookDetails() {
 
   const handleAddToLibrary = () => {
     if (book && !isLibraryBook) {
-      navigation.navigate('AddBook', { bookData: book as ProcessedBookData });
+      const bookDataWithSelection = {
+        ...(book as ProcessedBookData),
+        selectedPublishers,
+        selectedCategories,
+      };
+      navigation.navigate('AddBook', { bookData: bookDataWithSelection });
     }
+  };
+
+  const addPublisher = (publisher: string) => {
+    if (!selectedPublishers.includes(publisher)) {
+      setSelectedPublishers([...selectedPublishers, publisher]);
+    }
+    setPublisherMenuVisible(false);
+  };
+
+  const removePublisher = (publisher: string) => {
+    setSelectedPublishers(selectedPublishers.filter(p => p !== publisher));
+  };
+
+  const addCategory = (category: string) => {
+    if (!selectedCategories.includes(category)) {
+      setSelectedCategories([...selectedCategories, category]);
+    }
+    setCategoryMenuVisible(false);
+  };
+
+  const removeCategory = (category: string) => {
+    setSelectedCategories(selectedCategories.filter(c => c !== category));
+  };
+
+  const getAvailablePublishers = () => {
+    const allPublishers = (book as ProcessedBookData).publishers || [];
+    return allPublishers.filter(p => !selectedPublishers.includes(p)).sort();
+  };
+
+  const getAvailableCategories = () => {
+    const allCategories = (book as ProcessedBookData).subjects || [];
+    return allCategories.filter(c => !selectedCategories.includes(c)).sort();
   };
 
   if (loading) {
@@ -160,45 +215,111 @@ export default function BookDetails() {
           </Surface>
         )}
 
-        {/* Publishers */}
+        {/* Publisher */}
         {(book as ProcessedBookData).publishers?.length > 0 && (
           <Surface style={[styles.section, { backgroundColor: theme.colors.surface }]}>
             <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>
-              {t('bookDetails.publishers')}
+              {t('bookDetails.publisher')}
             </Text>
+            
+            {/* Selected Publisher Chips */}
             <View style={styles.chipsContainer}>
-              {(book as ProcessedBookData).publishers.map((publisher, index) => (
+              {selectedPublishers.map((publisher, index) => (
                 <Chip
                   key={index}
                   style={[styles.chip, { backgroundColor: theme.colors.primaryContainer }]}
                   textStyle={{ color: theme.colors.onPrimaryContainer }}
                   compact
+                  onClose={() => removePublisher(publisher)}
+                  closeIcon="close"
                 >
                   {publisher}
                 </Chip>
               ))}
             </View>
+
+            {/* Add Publisher Menu */}
+            {getAvailablePublishers().length > 0 && (
+              <Menu
+                visible={publisherMenuVisible}
+                onDismiss={() => setPublisherMenuVisible(false)}
+                anchor={
+                  <Button
+                    mode="outlined"
+                    onPress={() => setPublisherMenuVisible(true)}
+                    style={[styles.addTagButton, { borderColor: theme.colors.outline }]}
+                    contentStyle={styles.addTagButtonContent}
+                    icon="plus"
+                  >
+                    <Text style={{ color: theme.colors.onSurface }}>
+                      Add Publisher
+                    </Text>
+                  </Button>
+                }
+              >
+                {getAvailablePublishers().map((publisher, index) => (
+                  <Menu.Item
+                    key={index}
+                    onPress={() => addPublisher(publisher)}
+                    title={publisher}
+                  />
+                ))}
+              </Menu>
+            )}
           </Surface>
         )}
 
-        {/* Subjects/Categories */}
+        {/* Category */}
         {(book as ProcessedBookData).subjects?.length > 0 && (
           <Surface style={[styles.section, { backgroundColor: theme.colors.surface }]}>
             <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>
-              {t('bookDetails.subjects')}
+              {t('bookDetails.category')}
             </Text>
+            
+            {/* Selected Category Chips */}
             <View style={styles.chipsContainer}>
-              {(book as ProcessedBookData).subjects.slice(0, 10).map((subject, index) => (
+              {selectedCategories.map((category, index) => (
                 <Chip
                   key={index}
                   style={[styles.chip, { backgroundColor: theme.colors.secondaryContainer }]}
                   textStyle={{ color: theme.colors.onSecondaryContainer }}
                   compact
+                  onClose={() => removeCategory(category)}
+                  closeIcon="close"
                 >
-                  {subject}
+                  {category}
                 </Chip>
               ))}
             </View>
+
+            {/* Add Category Menu */}
+            {getAvailableCategories().length > 0 && (
+              <Menu
+                visible={categoryMenuVisible}
+                onDismiss={() => setCategoryMenuVisible(false)}
+                anchor={
+                  <Button
+                    mode="outlined"
+                    onPress={() => setCategoryMenuVisible(true)}
+                    style={[styles.addTagButton, { borderColor: theme.colors.outline }]}
+                    contentStyle={styles.addTagButtonContent}
+                    icon="plus"
+                  >
+                    <Text style={{ color: theme.colors.onSurface }}>
+                      Add Category
+                    </Text>
+                  </Button>
+                }
+              >
+                {getAvailableCategories().slice(0, 10).map((category, index) => (
+                  <Menu.Item
+                    key={index}
+                    onPress={() => addCategory(category)}
+                    title={category}
+                  />
+                ))}
+              </Menu>
+            )}
           </Surface>
         )}
 
@@ -241,7 +362,7 @@ export default function BookDetails() {
             style={[styles.addButton, { backgroundColor: theme.colors.primary }]}
             contentStyle={styles.addButtonContent}
           >
-            <Text style={[styles.addButtonText, { color: theme.colors.onPrimary }]}>
+            <Text style={[styles.addButtonText, { color: '#FFFFFF' }]}>
               {t('bookDetails.addToLibrary')}
             </Text>
           </Button>
@@ -324,6 +445,20 @@ const styles = StyleSheet.create({
   lastRead: {
     marginTop: verticalScale(4),
     opacity: 0.7,
+  },
+  dropdownButton: {
+    justifyContent: 'flex-start',
+    marginBottom: verticalScale(8),
+  },
+  dropdownContent: {
+    justifyContent: 'flex-start',
+  },
+  addTagButton: {
+    marginTop: verticalScale(8),
+    alignSelf: 'flex-start',
+  },
+  addTagButtonContent: {
+    paddingVertical: verticalScale(4),
   },
   bottomButton: {
     padding: scale(20),

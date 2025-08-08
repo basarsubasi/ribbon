@@ -15,6 +15,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 
+
 const { width } = Dimensions.get('window');
 
 
@@ -114,6 +115,7 @@ const Home = () => {
                 style={[styles.addBookButton, { backgroundColor: theme.colors.primary }]}
                 onPress={() => navigation.navigate('Library' as never)}
                 contentStyle={{ paddingVertical: verticalScale(4) }}
+                labelStyle={{ color: '#FFFFFF' }}
               >
                 {t('home.browseLibrary')}
               </Button>

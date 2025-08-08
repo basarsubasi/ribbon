@@ -10,6 +10,7 @@ import {
 } from 'react-native-paper';
 import { useTheme } from '../../context/ThemeContext';
 import { useNavigation } from '@react-navigation/native';
+import { FontAwesome, Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { scale, verticalScale } from 'react-native-size-matters';
 import { 
@@ -76,9 +77,8 @@ export default function SearchBook() {
               />
             ) : (
               <View style={[styles.coverPlaceholder, { backgroundColor: theme.colors.primary }]}>
-                <Text style={[styles.coverText, { color: theme.colors.onPrimary }]}>
-                  📖
-                </Text>
+                <FontAwesome name="book" size={24} color={theme.colors.onSurface} />
+
               </View>
             )}
           </View>
@@ -200,7 +200,7 @@ export default function SearchBook() {
           mode="contained"
           onPress={handleSearch}
           disabled={!searchQuery.trim() || loading}
-          style={[styles.searchButton, { backgroundColor: theme.colors.primary }]}
+          style={[styles.searchButton, { backgroundColor: theme.colors.primary }]} labelStyle={{ color: '#FFFFFF' }}
         >
           {t('search.searchButton')}
         </Button>

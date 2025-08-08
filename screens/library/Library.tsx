@@ -46,7 +46,8 @@ export default function Library() {
         icon="plus"
         style={[styles.fab, { backgroundColor: theme.colors.primary }]}
         onPress={() => setModalVisible(true)}
-        label={t('library.addBook')}
+        color="#FFFFFF"
+        size="medium"
       />
     </View>
   );
@@ -63,5 +64,9 @@ const styles = StyleSheet.create({
     margin: scale(16),
     right: 0,
     bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation:0,
+    shadowOpacity:0
   },
 });

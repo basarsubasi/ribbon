@@ -40,6 +40,8 @@ export interface ProcessedBookData {
   coverUrl?: string;
   description?: string;
   openLibraryKey: string;
+  selectedPublishers?: string[];
+  selectedCategories?: string[];
 }
 
 const OPENLIBRARY_BASE_URL = 'https://openlibrary.org';
