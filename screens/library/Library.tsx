@@ -17,7 +17,8 @@ import {
   Chip,
   Searchbar,
   ActivityIndicator,
-  Divider
+  Divider,
+  Surface
 } from 'react-native-paper';
 import { useTheme } from '../../context/ThemeContext';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -29,6 +30,7 @@ import { LibraryStackParamList } from '../../utils/types';
 import { useSQLiteContext } from 'expo-sqlite';
 import { getCoverImageUri } from '../../utils/imageUtils';
 import { FontAwesome} from '@expo/vector-icons';
+import StackedBooksIcon from '../../components/StackedBooksIcon';
 
 
 type LibraryNavigationProp = StackNavigationProp<LibraryStackParamList, 'Library'>;
@@ -640,129 +642,132 @@ export default function Library() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      {/* Search Bar */}
-      <Searchbar
-        placeholder={t('library.searchBooks')}
-        onChangeText={setSearchQuery}
-        value={searchQuery}
-        style={styles.searchBar}
+      <FlatList
+        data={filteredBooks}
+        renderItem={renderBookItem}
+        keyExtractor={(item) => item.book_id.toString()}
+        ListHeaderComponent={
+          <>
+            <Surface style={[styles.heroHeader, { backgroundColor: theme.colors.background, borderBottomColor: theme.colors.outlineVariant, borderBottomWidth: StyleSheet.hairlineWidth }]} elevation={0}>
+              <View style={styles.heroContent}>
+                <StackedBooksIcon
+                  width={scale(72)}
+                  height={scale(72)}
+                  primaryColor={theme.colors.primary}
+                  secondaryColor={theme.colors.primaryContainer}
+                  accentColor={theme.colors.secondaryContainer}
+                />
+                <Text variant="headlineLarge" style={[styles.heroTitle, { color: theme.colors.primary }]}>{t('library.title')}</Text>
+                <Text variant="bodyLarge" style={[styles.heroTagline, { color: theme.colors.onSurface }]}>
+                  {t('library.tagline')}
+                </Text>
+              </View>
+            </Surface>
+            <Searchbar
+              placeholder={t('library.searchBooks')}
+              onChangeText={setSearchQuery}
+              value={searchQuery}
+              style={styles.searchBar}
+            />
+            <View style={styles.controlsContainer}>
+              <View style={styles.buttonsRow}>
+                {renderFilterMenu()}
+                {renderSortMenu()}
+              </View>
+            </View>
+            {((filterOptions.status?.length || 0) +
+              (filterOptions.bookType?.length || 0) +
+              (filterOptions.authors?.length || 0) +
+              (filterOptions.categories?.length || 0)) > 0 && (
+              <View style={styles.activeFiltersContainer}>
+                {(filterOptions.status || []).map(status => (
+                  <Chip
+                    key={`status-${status}`}
+                    onClose={() => {
+                      setFilterOptions(prev => ({
+                        ...prev,
+                        status: (prev.status || []).filter(s => s !== status)
+                      }));
+                    }}
+                    style={[styles.filterChip, { backgroundColor: theme.colors.primaryContainer }]}
+                    textStyle={styles.filterChipText}
+                  >
+                    {t(`library.${status}`)}
+                  </Chip>
+                ))}
+                {(filterOptions.bookType || []).map(bookType => (
+                  <Chip
+                    key={`bookType-${bookType}`}
+                    onClose={() => {
+                      setFilterOptions(prev => ({
+                        ...prev,
+                        bookType: (prev.bookType || []).filter(bt => bt !== bookType)
+                      }));
+                    }}
+                    style={[styles.filterChip, { backgroundColor: theme.colors.secondaryContainer }]}
+                    textStyle={styles.filterChipText}
+                  >
+                    {bookType.charAt(0).toUpperCase() + bookType.slice(1)}
+                  </Chip>
+                ))}
+                {(filterOptions.authors || []).map(author => (
+                  <Chip
+                    key={`author-${author}`}
+                    onClose={() => {
+                      setFilterOptions(prev => ({
+                        ...prev,
+                        authors: (prev.authors || []).filter(a => a !== author)
+                      }));
+                    }}
+                    style={[styles.filterChip, { backgroundColor: theme.colors.tertiaryContainer }]}
+                    textStyle={styles.filterChipText}
+                  >
+                    {author}
+                  </Chip>
+                ))}
+                {(filterOptions.categories || []).map((category, index) => {
+                  const categoryColors = [
+                    theme.colors.primaryContainer,
+                    theme.colors.secondaryContainer,
+                    theme.colors.tertiaryContainer,
+                    theme.colors.errorContainer,
+                    theme.colors.surfaceVariant,
+                  ];
+                  return (
+                    <Chip
+                      key={`category-${category}`}
+                      onClose={() => {
+                        setFilterOptions(prev => ({
+                          ...prev,
+                          categories: (prev.categories || []).filter(c => c !== category)
+                        }));
+                      }}
+                      style={[styles.filterChip, { backgroundColor: categoryColors[index % categoryColors.length] }]}
+                      textStyle={styles.filterChipText}
+                    >
+                      {category}
+                    </Chip>
+                  );
+                })}
+              </View>
+            )}
+            {filteredBooks.length === 0 && (
+              <View style={styles.emptyContainer}>
+                <Text style={[styles.emptyText, { color: theme.colors.onSurface }]}>
+                  {books.length === 0 ? t('library.noBooksYet') : t('library.noBooksFound')}
+                </Text>
+                {books.length === 0 && (
+                  <Text style={[styles.emptySubText, { color: theme.colors.onSurfaceVariant }]}>
+                    {t('library.addFirstBook')}
+                  </Text>
+                )}
+              </View>
+            )}
+          </>
+        }
+        contentContainerStyle={styles.listContainer}
+        showsVerticalScrollIndicator={false}
       />
-      
-      {/* Filter and Sort Controls */}
-      <View style={styles.controlsContainer}>
-        <View style={styles.buttonsRow}>
-          {renderFilterMenu()}
-          {renderSortMenu()}
-        </View>
-      </View>
-      
-      {/* Active Filter Chips - Separate Row */}
-      {((filterOptions.status?.length || 0) + 
-        (filterOptions.bookType?.length || 0) + 
-        (filterOptions.authors?.length || 0) + 
-        (filterOptions.categories?.length || 0)) > 0 && (
-        <View style={styles.activeFiltersContainer}>
-        {/* Status filters */}
-        {(filterOptions.status || []).map(status => (
-          <Chip
-            key={`status-${status}`}
-            onClose={() => {
-              setFilterOptions(prev => ({
-                ...prev,
-                status: (prev.status || []).filter(s => s !== status)
-              }));
-            }}
-            style={[styles.filterChip, { backgroundColor: theme.colors.primaryContainer }]}
-            textStyle={styles.filterChipText}
-          >
-            {t(`library.${status}`)}
-          </Chip>
-        ))}
-        
-        {/* Book type filters */}
-        {(filterOptions.bookType || []).map(bookType => (
-          <Chip
-            key={`bookType-${bookType}`}
-            onClose={() => {
-              setFilterOptions(prev => ({
-                ...prev,
-                bookType: (prev.bookType || []).filter(bt => bt !== bookType)
-              }));
-            }}
-            style={[styles.filterChip, { backgroundColor: theme.colors.secondaryContainer }]}
-            textStyle={styles.filterChipText}
-          >
-            {bookType.charAt(0).toUpperCase() + bookType.slice(1)}
-          </Chip>
-        ))}
-        
-        {/* Author filters */}
-        {(filterOptions.authors || []).map(author => (
-          <Chip
-            key={`author-${author}`}
-            onClose={() => {
-              setFilterOptions(prev => ({
-                ...prev,
-                authors: (prev.authors || []).filter(a => a !== author)
-              }));
-            }}
-            style={[styles.filterChip, { backgroundColor: theme.colors.tertiaryContainer }]}
-            textStyle={styles.filterChipText}
-          >
-            {author}
-          </Chip>
-        ))}
-        
-        {/* Category filters with different colors */}
-        {(filterOptions.categories || []).map((category, index) => {
-          const categoryColors = [
-            theme.colors.primaryContainer,
-            theme.colors.secondaryContainer, 
-            theme.colors.tertiaryContainer,
-            theme.colors.errorContainer,
-            theme.colors.surfaceVariant,
-          ];
-          return (
-            <Chip
-              key={`category-${category}`}
-              onClose={() => {
-                setFilterOptions(prev => ({
-                  ...prev,
-                  categories: (prev.categories || []).filter(c => c !== category)
-                }));
-              }}
-              style={[styles.filterChip, { backgroundColor: categoryColors[index % categoryColors.length] }]}
-              textStyle={styles.filterChipText}
-            >
-              {category}
-            </Chip>
-          );
-        })}
-      </View>
-      )}
-      
-      {/* Books List */}
-      {filteredBooks.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Text style={[styles.emptyText, { color: theme.colors.onSurface }]}>
-            {books.length === 0 ? t('library.noBooksYet') : t('library.noBooksFound')}
-          </Text>
-          {books.length === 0 && (
-            <Text style={[styles.emptySubText, { color: theme.colors.onSurfaceVariant }]}>
-              {t('library.addFirstBook')}
-            </Text>
-          )}
-        </View>
-      ) : (
-        <FlatList
-          data={filteredBooks}
-          renderItem={renderBookItem}
-          keyExtractor={(item) => item.book_id.toString()}
-          contentContainerStyle={styles.listContainer}
-          showsVerticalScrollIndicator={false}
-        />
-      )}
-      
       <AddBookModal
         visible={modalVisible}
         onDismiss={() => setModalVisible(false)}
@@ -770,8 +775,6 @@ export default function Library() {
         onSearchOpenLibrary={handleSearchOpenLibrary}
         onAddManually={handleAddManually}
       />
-      
-      {/* Floating Action Button */}
       <FAB
         icon="plus"
         style={[styles.fab, { backgroundColor: theme.colors.primary }]}
@@ -792,10 +795,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   searchBar: {
-    margin: scale(16),
+    marginHorizontal: scale(16),
     marginBottom: scale(16),
+    marginTop: scale(16),
     elevation: 0,
     shadowOpacity: 0,
+  },
+  heroHeader: {
+  paddingHorizontal: scale(20),
+  paddingVertical: verticalScale(20),
+  },
+  heroContent: {
+    alignItems: 'center',
+  },
+  heroTitle: {
+    marginTop: verticalScale(12),
+    fontWeight: '300',
+    letterSpacing: scale(2),
+    textTransform: 'lowercase',
+  },
+  heroTagline: {
+    marginTop: verticalScale(4),
+    opacity: 0.7,
   },
   controlsContainer: {
     flexDirection: 'row',
@@ -837,8 +858,9 @@ const styles = StyleSheet.create({
     gap: scale(8),
   },
   listContainer: {
-    padding: scale(16),
-    paddingTop: scale(8),
+  paddingBottom: scale(120),
+  paddingHorizontal: scale(16),
+  paddingTop: scale(8),
   },
   bookCard: {
     marginBottom: scale(16),
