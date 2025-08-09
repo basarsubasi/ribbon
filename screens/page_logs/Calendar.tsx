@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, FlatList, TouchableOpacity, Dimensions, Image } from 'react-native';
+import { View, StyleSheet, FlatList, TouchableOpacity, Dimensions, Image, ScrollView } from 'react-native';
 import { Text, Surface, FAB, IconButton, Divider, Modal, Portal, Card, Chip, Button, ProgressBar } from 'react-native-paper';
 import { useTheme } from '../../context/ThemeContext';
 import { useTranslation } from 'react-i18next';
@@ -21,6 +21,7 @@ interface PageLogItem {
   total_page_read: number;
   page_notes?: string;
   read_time?: string;
+  read_date?: string;
   // Book data
   cover_url?: string;
   cover_path?: string;
@@ -59,6 +60,12 @@ export default function Calendar() {
   const [pickerMonth, setPickerMonth] = useState<Date>(new Date());
   const [loading, setLoading] = useState(false);
   const [logPresence, setLogPresence] = useState<Record<string, boolean>>({});
+  
+  // Note modal states
+  const [showNoteModal, setShowNoteModal] = useState(false);
+  const [currentNoteLog, setCurrentNoteLog] = useState<PageLogItem | null>(null);
+  const [bookNotes, setBookNotes] = useState<PageLogItem[]>([]);
+  const [currentNoteIndex, setCurrentNoteIndex] = useState(0);
 
   const buildStrip = useCallback((center: Date) => {
     const days: Date[] = [];
@@ -101,6 +108,7 @@ export default function Calendar() {
         total_page_read: r.total_page_read,
         read_time: r.read_time,
         page_notes: r.page_notes,
+        read_date: r.read_date,
         // Book data
         cover_url: r.cover_url,
         cover_path: r.cover_path,
@@ -158,6 +166,46 @@ export default function Calendar() {
   const isToday = (date: Date) => {
     const today = new Date();
     return formatDateKey(date) === formatDateKey(today);
+  };
+
+  const handleViewNote = async (log: PageLogItem) => {
+    try {
+      // Get all notes for this book, ordered by date
+      const result = await db.getAllAsync<any>(`
+        SELECT 
+          pl.*, 
+          b.title,
+          b.number_of_pages
+        FROM page_logs pl
+        JOIN books b ON b.book_id = pl.book_id
+        WHERE pl.book_id = ? AND pl.page_notes IS NOT NULL AND pl.page_notes != ''
+        ORDER BY pl.read_date ASC, pl.page_log_id ASC
+      `, [log.book_id]);
+
+      const notes = result.map(r => ({
+        ...log, // Keep the current log's book data
+        page_log_id: r.page_log_id,
+        start_page: r.start_page,
+        end_page: r.end_page,
+        current_page_after_log: r.current_page_after_log,
+        total_page_read: r.total_page_read,
+        read_time: r.read_time,
+        page_notes: r.page_notes,
+        // Keep title and number_of_pages from the query
+        title: r.title,
+        number_of_pages: r.number_of_pages,
+        // Add read_date for display
+        read_date: r.read_date
+      }));
+
+      setBookNotes(notes);
+      const currentIndex = notes.findIndex(note => note.page_log_id === log.page_log_id);
+      setCurrentNoteIndex(Math.max(0, currentIndex));
+      setCurrentNoteLog(log);
+      setShowNoteModal(true);
+    } catch (error) {
+      console.error('Error loading notes:', error);
+    }
   };
 
   const renderDay = ({ item }: { item: Date }) => {
@@ -326,7 +374,14 @@ export default function Calendar() {
                   textStyle={styles.logChipText}
                   style={[styles.logChip, { backgroundColor: theme.colors.primaryContainer }]}
                 >
-                  Pages {item.start_page}–{item.end_page} · {item.total_page_read} pages
+                  Pages {item.start_page}–{item.end_page}
+                </Chip>
+                <Chip 
+                  compact
+                  textStyle={styles.logChipText}
+                  style={[styles.logChip, { backgroundColor: theme.colors.primaryContainer }]}
+                >
+                  {item.total_page_read} pages
                 </Chip>
                 {item.read_time && (
                   <Chip 
@@ -337,14 +392,17 @@ export default function Calendar() {
                     {item.read_time}
                   </Chip>
                 )}
+                {/* Note button - only show if log has notes */}
+                {item.page_notes && item.page_notes.trim() && (
+                  <IconButton
+                    icon="note-text"
+                    size={20}
+                    iconColor={theme.colors.primary}
+                    style={[styles.noteButton, { backgroundColor: theme.colors.primaryContainer }]}
+                    onPress={() => handleViewNote(item)}
+                  />
+                )}
               </View>
-              
-              {/* Notes preview */}
-              {item.page_notes && (
-                <Text variant="bodySmall" style={[styles.notePreview, { color: theme.colors.onSurfaceVariant }]}>
-                  {item.page_notes.length > 60 ? item.page_notes.substring(0, 60) + '…' : item.page_notes}
-                </Text>
-              )}
               
               {/* Progress Bar - using current_page_after_log for snapshot */}
               <View style={styles.progressContainer}>
@@ -513,7 +571,7 @@ export default function Calendar() {
                 const bg = hasLogs
                   ? theme.colors.primary
                   : isToday
-                    ? (theme.colors.secondaryContainer || theme.colors.primaryContainer)
+                    ? theme.colors.secondaryContainer
                     : 'transparent';
                 
                 return (
@@ -541,7 +599,7 @@ export default function Calendar() {
                         color: hasLogs
                           ? theme.colors.onPrimary
                           : isToday
-                            ? (theme.colors.onSecondaryContainer || theme.colors.onPrimaryContainer)
+                            ? theme.colors.onSecondaryContainer
                             : isCurrentMonth
                               ? theme.colors.onSurface
                               : theme.colors.onSurfaceVariant,
@@ -582,6 +640,75 @@ export default function Calendar() {
               </Button>
 
             </View>
+          </Surface>
+        </Modal>
+      </Portal>
+
+      {/* Note Modal */}
+      <Portal>
+        <Modal 
+          visible={showNoteModal} 
+          onDismiss={() => setShowNoteModal(false)}
+          contentContainerStyle={styles.modalContainer}
+        >
+          <Surface style={[styles.modalSurface, { backgroundColor: theme.colors.surface }]} elevation={3}>
+            {currentNoteLog && bookNotes.length > 0 && (
+              <>
+                <Text variant="headlineSmall" style={[styles.modalTitle, { color: theme.colors.onSurface }]}>
+                  {currentNoteLog.title}
+                </Text>
+                <Text variant="bodyMedium" style={[styles.modalSubtitle, { color: theme.colors.onSurfaceVariant }]}>
+                  {bookNotes[currentNoteIndex]?.read_date ? 
+                    new Date(bookNotes[currentNoteIndex].read_date).toLocaleDateString(undefined, { 
+                      weekday: 'long', 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    }) : 'Unknown Date'
+                  }
+                </Text>
+                
+                <ScrollView style={styles.noteContent} showsVerticalScrollIndicator={true}>
+                  <Text variant="bodyLarge" style={[styles.noteText, { color: theme.colors.onSurface }]}>
+                    {bookNotes[currentNoteIndex]?.page_notes || 'No note available'}
+                  </Text>
+                </ScrollView>
+                
+                {/* Navigation arrows - always show, but grey out when disabled */}
+                <View style={styles.noteNavigation}>
+                  <IconButton
+                    icon="chevron-left"
+                    size={24}
+                    iconColor={bookNotes.length > 1 && currentNoteIndex > 0 ? theme.colors.onSurface : theme.colors.outline}
+                    disabled={bookNotes.length <= 1 || currentNoteIndex === 0}
+                    onPress={() => setCurrentNoteIndex(prev => Math.max(0, prev - 1))}
+                    style={{ opacity: (bookNotes.length > 1 && currentNoteIndex > 0) ? 1 : 0.3 }}
+                  />
+                  
+                  <Text variant="bodyMedium" style={[styles.navigationText, { color: theme.colors.onSurface }]}>
+                    {bookNotes[currentNoteIndex]?.start_page} - {bookNotes[currentNoteIndex]?.end_page}
+                  </Text>
+                  
+                  <IconButton
+                    icon="chevron-right"
+                    size={24}
+                    iconColor={bookNotes.length > 1 && currentNoteIndex < bookNotes.length - 1 ? theme.colors.onSurface : theme.colors.outline}
+                    disabled={bookNotes.length <= 1 || currentNoteIndex === bookNotes.length - 1}
+                    onPress={() => setCurrentNoteIndex(prev => Math.min(bookNotes.length - 1, prev + 1))}
+                    style={{ opacity: (bookNotes.length > 1 && currentNoteIndex < bookNotes.length - 1) ? 1 : 0.3 }}
+                  />
+                </View>
+                
+                <Button 
+                  mode="outlined" 
+                  onPress={() => setShowNoteModal(false)}
+                  style={{ marginTop: verticalScale(16) }}
+                  labelStyle={{ color: theme.colors.onSurface }}
+                >
+                  Close
+                </Button>
+              </>
+            )}
           </Surface>
         </Modal>
       </Portal>
@@ -892,6 +1019,39 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     minWidth: scale(60),
+  },
+  noteButton: {
+    marginLeft: scale(4),
+    width: scale(32),
+    height: scale(32),
+  },
+  // Modal note styles
+  modalSubtitle: {
+    textAlign: 'center',
+    marginBottom: verticalScale(16),
+    fontWeight: '500',
+  },
+  noteContent: {
+    backgroundColor: 'rgba(0,0,0,0.05)',
+    borderRadius: scale(8),
+    padding: scale(16),
+    marginVertical: verticalScale(16),
+    minHeight: scale(80),
+    maxHeight: verticalScale(300), // Add max height for scrolling
+  },
+  noteText: {
+    lineHeight: scale(22),
+  },
+  noteNavigation: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: verticalScale(12),
+  },
+  navigationText: {
+    fontWeight: '600',
+    textAlign: 'center',
+    flex: 1,
   },
   modalCloseBtn: {
     paddingVertical: verticalScale(12),
