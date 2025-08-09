@@ -34,7 +34,7 @@ import EditBook from './screens/library/EditBook';
 import ScanBarcode from './screens/library/ScanBarcode';
 import SearchBook from './screens/library/SearchBook';
 
-import PageLogs from './screens/page_logs/PageLogs';
+import Calendar from './screens/page_logs/Calendar';
 import LogPages from './screens/page_logs/LogPages';
 import LogDetails from './screens/page_logs/LogDetails';
 import EditLog from './screens/page_logs/EditLog';
@@ -95,7 +95,7 @@ function PageLogsStackNavigator() {
     <PageLogsStack.Navigator   screenOptions={{
           headerShown: false, // Disable headers for all screens in this stack
         }}>
-      <PageLogsStack.Screen name="PageLogs" component={PageLogs} options={{ headerShown: false }} />
+      <PageLogsStack.Screen name="Calendar" component={Calendar} options={{ headerShown: false }} />
       <PageLogsStack.Screen name="LogPages" component={LogPages} options={{ headerShown: false }} />
       <PageLogsStack.Screen name="LogDetails" component={LogDetails} options={{ headerShown: false }} />
       <PageLogsStack.Screen name="EditLog" component={EditLog} options={{ headerShown: false }} />
