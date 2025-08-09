@@ -85,5 +85,6 @@ export type PageLogsStackParamList = {
   LogPages: { bookId: number };
   LogDetails: { logId: number };
   EditLog: { logId: number };
+  ChooseBook: undefined
 };
 

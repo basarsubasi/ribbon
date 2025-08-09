@@ -3,7 +3,7 @@ import { View, StyleSheet, FlatList, TouchableOpacity, Dimensions } from 'react-
 import { Text, Surface, FAB, IconButton, Divider, Modal, Portal, Card, Chip, Button } from 'react-native-paper';
 import { useTheme } from '../../context/ThemeContext';
 import { useTranslation } from 'react-i18next';
-import CalendarIcon from '../../components/calendar/CalendarIcon';
+import CalendarIcon from '../../components/CalendarIcon';
 import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -293,7 +293,7 @@ export default function Calendar() {
       <FAB
         icon="book-plus"
         style={[styles.fab, { backgroundColor: theme.colors.primary }]}
-        onPress={() => navigation.navigate('LogPages')}
+        onPress={() => navigation.navigate('ChooseBook')}
         mode="elevated"
         color={theme.colors.surface}
       />

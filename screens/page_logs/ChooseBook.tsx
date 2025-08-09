@@ -18,22 +18,22 @@ import {
   Searchbar,
   ActivityIndicator,
   Divider,
-  Surface
+  Surface,
+  Appbar
 } from 'react-native-paper';
 import { useTheme } from '../../context/ThemeContext';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { scale, verticalScale } from 'react-native-size-matters';
-import AddBookModal from '../../components/AddBookModal';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { LibraryStackParamList } from '../../utils/types';
+import { PageLogsStackParamList } from '../../utils/types';
 import { useSQLiteContext } from 'expo-sqlite';
 import { getCoverImageUri } from '../../utils/imageUtils';
 import { FontAwesome} from '@expo/vector-icons';
 import StackedBooksIcon from '../../components/StackedBooksIcon';
 
 
-type LibraryNavigationProp = StackNavigationProp<LibraryStackParamList, 'Library'>;
+type ChooseBookNavigationProp = StackNavigationProp<PageLogsStackParamList, 'ChooseBook'>;
 
 const { width: screenWidth } = Dimensions.get('window');
 const COVER_WIDTH = screenWidth * 0.2;
@@ -72,13 +72,12 @@ interface SortOptions {
   sortOrder: 'asc' | 'desc';
 }
 
-export default function Library() {
+export default function ChooseBook() {
   const { theme } = useTheme();
-  const navigation = useNavigation<LibraryNavigationProp>();
+  const navigation = useNavigation<ChooseBookNavigationProp>();
   const { t } = useTranslation();
   const db = useSQLiteContext();
   
-  const [modalVisible, setModalVisible] = useState(false);
   const [books, setBooks] = useState<Book[]>([]);
   const [filteredBooks, setFilteredBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
@@ -260,19 +259,7 @@ export default function Library() {
   };
 
   const handleBookPress = (book: Book) => {
-    navigation.navigate('LibraryBookDetails', { bookId: book.book_id });
-  };
-
-  const handleScanBarcode = () => {
-    navigation.navigate('ScanBarcode' as never);
-  };
-
-  const handleSearchOpenLibrary = () => {
-    navigation.navigate('SearchBook' as never);
-  };
-
-  const handleAddManually = () => {
-    navigation.navigate('AddBook');
+    navigation.navigate('LogPages', { bookId: book.book_id });
   };
 
   const clearFilter = () => {
@@ -648,21 +635,6 @@ export default function Library() {
         keyExtractor={(item) => item.book_id.toString()}
         ListHeaderComponent={
           <>
-            <Surface style={[styles.heroHeader, { backgroundColor: theme.colors.background, borderBottomColor: theme.colors.outlineVariant, borderBottomWidth: StyleSheet.hairlineWidth }]} elevation={0}>
-              <View style={styles.heroContent}>
-                <StackedBooksIcon
-                  width={scale(72)}
-                  height={scale(72)}
-                  primaryColor={theme.colors.primary}
-                  secondaryColor={theme.colors.primaryContainer}
-                  accentColor={theme.colors.secondaryContainer}
-                />
-                <Text variant="headlineLarge" style={[styles.heroTitle, { color: theme.colors.primary }]}>{t('library.title')}</Text>
-                <Text variant="bodyLarge" style={[styles.heroTagline, { color: theme.colors.onSurface }]}>
-                  {t('library.tagline')}
-                </Text>
-              </View>
-            </Surface>
             <Searchbar
               placeholder={t('library.searchBooks')}
               onChangeText={setSearchQuery}
@@ -753,13 +725,13 @@ export default function Library() {
             )}
             {filteredBooks.length === 0 && (
               <View style={styles.emptyContainer}>
-                 <FontAwesome name="book" size={48} color={theme.colors.onSurfaceVariant} />
-                           <Text style={[styles.emptyText, { color: theme.colors.onSurfaceVariant }]}>
-                             {searchQuery || Object.keys(filterOptions).length > 0
-                               ? 'No books match your search or filters'
-                               : 'No books in your library yet'
-                             }
-                           </Text>
+               <FontAwesome name="book" size={48} color={theme.colors.onSurfaceVariant} />
+                    <Text style={[styles.emptyText, { color: theme.colors.onSurfaceVariant }]}>
+                    {searchQuery || Object.keys(filterOptions).length > 0
+                    ? 'No books match your search or filters'
+                    : 'No books in your library yet'
+                       }
+                        </Text>
                 {books.length === 0 && (
                   <Text style={[styles.emptySubText, { color: theme.colors.onSurfaceVariant }]}>
                     {t('library.addFirstBook')}
@@ -771,20 +743,6 @@ export default function Library() {
         }
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
-      />
-      <AddBookModal
-        visible={modalVisible}
-        onDismiss={() => setModalVisible(false)}
-        onScanBarcode={handleScanBarcode}
-        onSearchOpenLibrary={handleSearchOpenLibrary}
-        onAddManually={handleAddManually}
-      />
-      <FAB
-        icon="plus"
-        style={[styles.fab, { backgroundColor: theme.colors.primary }]}
-        onPress={() => setModalVisible(true)}
-        color="#FFFFFF"
-        size="medium"
       />
     </View>
   );
@@ -971,7 +929,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: scale(32),
+    paddingVertical: scale(32),
     paddingHorizontal: scale(32),
   },
   emptyText: {
@@ -987,15 +945,5 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: scale(16),
     fontSize: scale(16),
-  },
-  fab: {
-    position: 'absolute',
-    margin: scale(16),
-    right: 0,
-    bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 8,
-    shadowOpacity: 0.3,
   },
 });

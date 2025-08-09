@@ -11,7 +11,6 @@ import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-cont
 import { StatusBar } from 'expo-status-bar';
 import * as NavigationBar from 'expo-navigation-bar';
 import { PaperProvider } from 'react-native-paper';
-
 import { SettingsProvider } from './context/SettingsContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { FontAwesome, Ionicons } from '@expo/vector-icons';
@@ -35,6 +34,7 @@ import ScanBarcode from './screens/library/ScanBarcode';
 import SearchBook from './screens/library/SearchBook';
 
 import Calendar from './screens/page_logs/Calendar';
+import ChooseBook from './screens/page_logs/ChooseBook';
 import LogPages from './screens/page_logs/LogPages';
 import LogDetails from './screens/page_logs/LogDetails';
 import EditLog from './screens/page_logs/EditLog';
@@ -96,6 +96,7 @@ function PageLogsStackNavigator() {
           headerShown: false, // Disable headers for all screens in this stack
         }}>
       <PageLogsStack.Screen name="Calendar" component={Calendar} options={{ headerShown: false }} />
+      <PageLogsStack.Screen name="ChooseBook" component={ChooseBook} options={{ headerShown: false }} />
       <PageLogsStack.Screen name="LogPages" component={LogPages} options={{ headerShown: false }} />
       <PageLogsStack.Screen name="LogDetails" component={LogDetails} options={{ headerShown: false }} />
       <PageLogsStack.Screen name="EditLog" component={EditLog} options={{ headerShown: false }} />
@@ -270,10 +271,12 @@ const AppContent = () => {
       <View style={{ flex: 1, paddingTop: insets.top, backgroundColor: theme.colors.background }}>
         <GestureHandlerRootView style={{ flex: 1 }}>
           <SQLiteProvider databaseName="RibbonDB.db" useSuspense>
+            <DatabaseInitializer>
               <NavigationContainer>
                 <ThemeAwareStatusBar />
                 <TabNavigator />
               </NavigationContainer>
+               </DatabaseInitializer>
           </SQLiteProvider>
         </GestureHandlerRootView>
       </View>
