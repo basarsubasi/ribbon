@@ -290,7 +290,7 @@ export default function Library() {
     const completionText = getCompletionText(item.current_page, item.number_of_pages);
     
     return (
-      <TouchableOpacity onPress={() => handleBookPress(item)}>
+      <TouchableOpacity onPress={() => handleBookPress(item)} activeOpacity={0.7}>
         <Card style={[styles.bookCard, { backgroundColor: theme.colors.surface }]} elevation={2}>
           <Card.Content style={styles.bookContent}>
             {/* Book Cover */}

@@ -129,44 +129,15 @@ export const deleteOldCover = async (coverPath: string): Promise<void> => {
   }
 };
 
-/**
- * Clean up unused cover images (call periodically)
- */
-export const cleanupUnusedCovers = async (usedCoverPaths: string[]): Promise<void> => {
-  try {
-    const coversDirInfo = await FileSystem.getInfoAsync(BOOK_COVERS_DIR);
-    if (!coversDirInfo.exists) return;
-    
-    const files = await FileSystem.readDirectoryAsync(BOOK_COVERS_DIR);
-    
-    for (const filename of files) {
-      const fullPath = `${BOOK_COVERS_DIR}${filename}`;
-      
-      // If this file is not in the used covers list, delete it
-      if (!usedCoverPaths.includes(fullPath)) {
-        await FileSystem.deleteAsync(fullPath);
-        console.log('Cleaned up unused cover:', fullPath);
-      }
-    }
-  } catch (error) {
-    console.error('Error cleaning up unused covers:', error);
-  }
-};
 
 /**
- * Get optimized cover image URI (prioritize local, fallback to remote)
+ * Get optimized cover image URI
  */
 export const getCoverImageUri = (coverPath?: string, coverUrl?: string): string | null => {
   // Prioritize local path
   if (coverPath && !coverPath.startsWith('http')) {
     return coverPath;
   }
-  
-  // Fallback to remote URL
-  if (coverUrl) {
-    return coverUrl;
-  }
-  
   return null;
 };
 
