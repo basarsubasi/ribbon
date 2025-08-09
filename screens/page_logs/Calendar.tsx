@@ -569,11 +569,11 @@ export default function Calendar() {
                 const isToday = key === formatDateKey(new Date());
                 const hasLogs = !!logPresence[key];
                 const bg = hasLogs
-                  ? theme.colors.primary
+                  ? theme.colors.primaryContainer
                   : isToday
-                    ? theme.colors.secondaryContainer
+                    ? theme.colors.secondary
                     : 'transparent';
-                
+
                 return (
                   <TouchableOpacity
                     key={index}

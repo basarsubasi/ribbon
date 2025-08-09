@@ -631,7 +631,6 @@ export default function ChooseBook() {
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
 
               <Appbar.Header style={{ backgroundColor: theme.colors.surface }}>
-                <Appbar.BackAction onPress={() => navigation.goBack()} />
                 <Appbar.Content title="Choose a Book to Log" />
               </Appbar.Header>
     

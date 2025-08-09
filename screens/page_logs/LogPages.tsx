@@ -237,7 +237,6 @@ export default function LogPages() {
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <Appbar.Header style={{ backgroundColor: theme.colors.surface }}>
-        <Appbar.BackAction onPress={() => navigation.goBack()} />
         <Appbar.Content title="Log Reading Progress" />
       </Appbar.Header>
       <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
@@ -280,19 +279,14 @@ export default function LogPages() {
               {bookData.categories.length > 0 && (
                 <View style={styles.categoriesContainer}>
                   {bookData.categories.slice(0, 3).map((category, index) => {
-                    const categoryColors = [
-                      theme.colors.primaryContainer,
-                      theme.colors.secondaryContainer,
-                      theme.colors.tertiaryContainer,
-                    ];
                     return (
                       <Chip
                         key={`${category}-${index}`}
                         style={[
                           styles.categoryChip, 
-                          { backgroundColor: categoryColors[index % categoryColors.length] }
+                          { backgroundColor: theme.colors.secondaryContainer }
                         ]}
-                        textStyle={[styles.categoryChipText, { color: theme.colors.onSurface }]}
+                        textStyle={[styles.categoryChipText, { color: theme.colors.onSecondaryContainer }]}
                         compact
                       >
                         {category}
@@ -375,7 +369,7 @@ export default function LogPages() {
               value={notes}
               onChangeText={setNotes}
               multiline
-              numberOfLines={3}
+              numberOfLines={6}
               style={styles.notesInput}
             />
           </View>
@@ -656,6 +650,7 @@ const styles = StyleSheet.create({
   },
   notesInput: {
     backgroundColor: 'transparent',
+    minHeight: verticalScale(120),
   },
   saveButton: {
     borderRadius: scale(8),
