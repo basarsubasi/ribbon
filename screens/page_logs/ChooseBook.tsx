@@ -629,6 +629,12 @@ export default function ChooseBook() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+
+              <Appbar.Header style={{ backgroundColor: theme.colors.surface }}>
+                <Appbar.BackAction onPress={() => navigation.goBack()} />
+                <Appbar.Content title="Choose a Book to Log" />
+              </Appbar.Header>
+    
       <FlatList
         data={filteredBooks}
         renderItem={renderBookItem}

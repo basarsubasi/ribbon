@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Image, ScrollView, Alert } from 'react-native';
+import { View, StyleSheet, Image, ScrollView, Alert, TouchableOpacity } from 'react-native';
 import {
   Text,
   Card,
@@ -8,7 +8,9 @@ import {
   Appbar,
   Surface,
   Chip,
-  ActivityIndicator
+  ActivityIndicator,
+  Modal,
+  Portal
 } from 'react-native-paper';
 import { useTheme } from '../../context/ThemeContext';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -18,7 +20,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { PageLogsStackParamList } from '../../utils/types';
 import { useSQLiteContext } from 'expo-sqlite';
 import { getCoverImageUri } from '../../utils/imageUtils';
-import { FontAwesome } from '@expo/vector-icons';
+import { FontAwesome, Ionicons } from '@expo/vector-icons';
 
 type LogPagesRouteProp = RouteProp<PageLogsStackParamList, 'LogPages'>;
 type LogPagesNavigationProp = StackNavigationProp<PageLogsStackParamList, 'LogPages'>;
@@ -30,9 +32,18 @@ interface BookData {
   cover_path?: string;
   number_of_pages: number;
   current_page: number;
+  stars?: number;
   authors: string[];
   categories: string[];
 }
+
+// Format date key (avoids timezone shifting that happens with toISOString)
+const formatDateKey = (d: Date) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
 
 export default function LogPages() {
   const { theme } = useTheme();
@@ -49,6 +60,9 @@ export default function LogPages() {
   const [endPage, setEndPage] = useState('');
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [pickerMonth, setPickerMonth] = useState<Date>(new Date());
 
   useEffect(() => {
     loadBookData();
@@ -79,10 +93,10 @@ export default function LogPages() {
           categories: book.categories ? book.categories.split(',') : []
         });
         
-        // Set default start page to current page + 1
-        const nextPage = (book.current_page + 1).toString();
-        setStartPage(nextPage);
-        setEndPage(nextPage);
+        // Set default start page to current page (not current page + 1)
+        setStartPage(book.current_page.toString());
+        // Leave end page empty initially
+        setEndPage('');
       }
     } catch (error) {
       console.error('Error loading book data:', error);
@@ -99,6 +113,7 @@ export default function LogPages() {
     const start = parseInt(startPage);
     const end = parseInt(endPage);
 
+    // Validation checks
     if (isNaN(start) || isNaN(end)) {
       Alert.alert('Invalid Input', 'Please enter valid page numbers');
       return;
@@ -116,29 +131,74 @@ export default function LogPages() {
 
     setSaving(true);
     try {
-      const currentDate = new Date().toISOString().slice(0, 10);
-      const currentTime = new Date().toLocaleTimeString();
+      const logDate = formatDateKey(selectedDate);
+      const currentTime = new Date().toLocaleTimeString('en-US', { 
+        hour12: false, 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      });
+      
+      // Calculate total pages read
+      const totalPagesRead = end - start + 1;
+      
+      // Get current page after log (snapshot)
+      const currentPageAfterLog = Math.max(end, bookData.current_page);
       
       // Insert the log
       await db.runAsync(`
-        INSERT INTO page_logs (book_id, start_page, end_page, total_page_read, read_date, read_time, page_notes)
+        INSERT INTO page_logs (
+          book_id, 
+          start_page, 
+          end_page, 
+          current_page_after_log, 
+          total_page_read, 
+          read_date, 
+          page_notes
+        )
         VALUES (?, ?, ?, ?, ?, ?, ?)
-      `, [bookId, start, end, end - start + 1, currentDate, currentTime, notes || null]);
+      `, [bookId, start, end, currentPageAfterLog, totalPagesRead, logDate, notes || null]);
 
-      // Update book's current page
-      await db.runAsync(`
-        UPDATE books SET current_page = ? WHERE book_id = ?
-      `, [end, bookId]);
+      // Update book's current page only if end page > current page
+      let updateQuery = '';
+      let updateParams = [];
+      
+      if (end > bookData.current_page) {
+        // Update both current_page and last_read conditionally
+        updateQuery = `
+          UPDATE books 
+          SET current_page = ?, 
+              last_read = CASE 
+                WHEN last_read IS NULL OR last_read < ? THEN ?
+                ELSE last_read
+              END
+          WHERE book_id = ?
+        `;
+        updateParams = [end, logDate, logDate, bookId];
+      } else {
+        // Only update last_read conditionally
+        updateQuery = `
+          UPDATE books 
+          SET last_read = CASE 
+            WHEN last_read IS NULL OR last_read < ? THEN ?
+            ELSE last_read
+          END
+          WHERE book_id = ?
+        `;
+        updateParams = [logDate, logDate, bookId];
+      }
+      
+      await db.runAsync(updateQuery, updateParams);
 
       Alert.alert(
         'Success!', 
-        `Logged reading session: pages ${start}-${end}`,
+        `Logged reading session: pages ${start}-${end} (${totalPagesRead} pages)`,
         [
           { text: 'Log More Pages', onPress: () => {
-            setStartPage((end + 1).toString());
-            setEndPage((end + 1).toString());
+            const newCurrentPage = end > bookData.current_page ? end : bookData.current_page;
+            setStartPage(newCurrentPage.toString());
+            setEndPage('');
             setNotes('');
-            setBookData(prev => prev ? { ...prev, current_page: end } : null);
+            setBookData(prev => prev ? { ...prev, current_page: newCurrentPage } : null);
           }},
           { text: 'Done', onPress: () => navigation.navigate('Calendar') }
         ]
@@ -178,9 +238,8 @@ export default function LogPages() {
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <Appbar.Header style={{ backgroundColor: theme.colors.surface }}>
         <Appbar.BackAction onPress={() => navigation.goBack()} />
-        <Appbar.Content title="Log Reading Pages" />
+        <Appbar.Content title="Log Reading Progress" />
       </Appbar.Header>
-
       <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
         {/* Book Info Card */}
         <Card style={[styles.bookCard, { backgroundColor: theme.colors.surface }]}>
@@ -207,24 +266,74 @@ export default function LogPages() {
                 {bookData.authors.join(', ') || 'Unknown Author'}
               </Text>
               
+              {/* Stars Display */}
+              {bookData.stars && bookData.stars > 0 && (
+                <View style={styles.starsContainer}>
+                  {Array.from({ length: 5 }, (_, index) => (
+                    <Text key={index} style={[styles.star, { color: theme.colors.primary }]}>
+                      {index < bookData.stars! ? '★' : '☆'}
+                    </Text>
+                  ))}
+                </View>
+              )}
+              
               {bookData.categories.length > 0 && (
                 <View style={styles.categoriesContainer}>
-                  {bookData.categories.slice(0, 3).map((category, index) => (
-                    <Chip
-                      key={`${category}-${index}`}
-                      style={[styles.categoryChip, { backgroundColor: theme.colors.secondaryContainer }]}
-                      textStyle={[styles.categoryChipText, { color: theme.colors.onSecondaryContainer }]}
-                      compact
-                    >
-                      {category}
-                    </Chip>
-                  ))}
+                  {bookData.categories.slice(0, 3).map((category, index) => {
+                    const categoryColors = [
+                      theme.colors.primaryContainer,
+                      theme.colors.secondaryContainer,
+                      theme.colors.tertiaryContainer,
+                    ];
+                    return (
+                      <Chip
+                        key={`${category}-${index}`}
+                        style={[
+                          styles.categoryChip, 
+                          { backgroundColor: categoryColors[index % categoryColors.length] }
+                        ]}
+                        textStyle={[styles.categoryChipText, { color: theme.colors.onSurface }]}
+                        compact
+                      >
+                        {category}
+                      </Chip>
+                    );
+                  })}
                 </View>
               )}
 
               <Text variant="bodySmall" style={[styles.progressText, { color: theme.colors.onSurfaceVariant }]}>
-                Current Progress: {bookData.current_page}/{bookData.number_of_pages} pages ({progress.toFixed(1)}%)
+                Current Progress: {bookData.current_page}/{bookData.number_of_pages} pages
               </Text>
+            </View>
+          </Card.Content>
+        </Card>
+
+        {/* Date Selection Card */}
+        <Card style={[styles.dateCard, { backgroundColor: theme.colors.surface }]}>
+          <Card.Content style={styles.dateCardContent}>
+            <Text variant="titleMedium" style={[styles.dateCardTitle, { color: theme.colors.onSurface }]}>
+              Logging Date
+            </Text>
+            <View style={styles.dateSection}>
+              <Text variant="bodyLarge" style={[styles.selectedDateText, { color: theme.colors.onSurface }]}>
+                {selectedDate.toLocaleDateString(undefined, { 
+                  weekday: 'long', 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                })}
+              </Text>
+              <TouchableOpacity
+                style={[styles.datePickerButton, { backgroundColor: theme.colors.primary }]}
+                onPress={() => {
+                  setPickerMonth(new Date(selectedDate));
+                  setShowDatePicker(true);
+                }}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="calendar" size={18} color={theme.colors.surface} />
+              </TouchableOpacity>
             </View>
           </Card.Content>
         </Card>
@@ -237,43 +346,34 @@ export default function LogPages() {
 
           <View style={styles.pageInputs}>
             <View style={styles.pageInputContainer}>
-              <Text variant="labelMedium" style={[styles.inputLabel, { color: theme.colors.onSurfaceVariant }]}>
-                Start Page
-              </Text>
               <TextInput
                 mode="outlined"
+                label="Start Page"
                 value={startPage}
                 onChangeText={setStartPage}
                 keyboardType="numeric"
-                placeholder={`From page ${bookData.current_page + 1}`}
                 style={styles.pageInput}
               />
             </View>
 
             <View style={styles.pageInputContainer}>
-              <Text variant="labelMedium" style={[styles.inputLabel, { color: theme.colors.onSurfaceVariant }]}>
-                End Page
-              </Text>
               <TextInput
                 mode="outlined"
+                label="End Page"
                 value={endPage}
                 onChangeText={setEndPage}
                 keyboardType="numeric"
-                placeholder={`To page`}
                 style={styles.pageInput}
               />
             </View>
           </View>
 
           <View style={styles.notesContainer}>
-            <Text variant="labelMedium" style={[styles.inputLabel, { color: theme.colors.onSurfaceVariant }]}>
-              Notes (Optional)
-            </Text>
             <TextInput
               mode="outlined"
+              label="Notes (Optional)"
               value={notes}
               onChangeText={setNotes}
-              placeholder="Add any thoughts or notes about your reading..."
               multiline
               numberOfLines={3}
               style={styles.notesInput}
@@ -292,6 +392,128 @@ export default function LogPages() {
           </Button>
         </Surface>
       </ScrollView>
+
+      {/* Date Picker Modal */}
+      <Portal>
+        <Modal 
+          visible={showDatePicker} 
+          onDismiss={() => setShowDatePicker(false)}
+          contentContainerStyle={styles.modalContainer}
+        >
+          <Surface style={[styles.modalSurface, { backgroundColor: theme.colors.surface }]} elevation={3}>
+            <Text variant="headlineSmall" style={[styles.modalTitle, { color: theme.colors.onSurface }]}>
+              Select Date
+            </Text>
+            
+            {/* Month Navigation */}
+            <View style={styles.monthNavigation}>
+              <TouchableOpacity
+                style={[styles.monthNavButton, { backgroundColor: theme.colors.background }]}
+                onPress={() => {
+                  const newMonth = new Date(pickerMonth);
+                  newMonth.setMonth(pickerMonth.getMonth() - 1);
+                  setPickerMonth(newMonth);
+                }}
+                activeOpacity={0.8}
+              >
+                <Text style={{ color: theme.colors.onPrimaryContainer, fontWeight: '600', fontSize: scale(16) }}>‹</Text>
+              </TouchableOpacity>
+              
+              <Text variant="titleMedium" style={[styles.monthYearText, { color: theme.colors.onSurface }]}>
+                {pickerMonth.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
+              </Text>
+              
+              <TouchableOpacity
+                style={[styles.monthNavButton, { backgroundColor: theme.colors.background }]}
+                onPress={() => {
+                  const newMonth = new Date(pickerMonth);
+                  newMonth.setMonth(pickerMonth.getMonth() + 1);
+                  setPickerMonth(newMonth);
+                }}
+                activeOpacity={0.8}
+              >
+                <Text style={{ color: theme.colors.onPrimaryContainer, fontWeight: '600', fontSize: scale(16) }}>›</Text>
+              </TouchableOpacity>
+            </View>
+            
+            {/* Calendar Grid */}
+            <View style={styles.calendarGrid}>
+              {Array.from({ length: 42 }, (_, index) => {
+                const startOfMonth = new Date(pickerMonth.getFullYear(), pickerMonth.getMonth(), 1);
+                const startOfWeek = new Date(startOfMonth);
+                startOfWeek.setDate(startOfMonth.getDate() - startOfMonth.getDay());
+                
+                const currentDate = new Date(startOfWeek);
+                currentDate.setDate(startOfWeek.getDate() + index);
+                
+                const isCurrentMonth = currentDate.getMonth() === pickerMonth.getMonth();
+                const key = formatDateKey(currentDate);
+                const isSelected = key === formatDateKey(selectedDate);
+                const isToday = key === formatDateKey(new Date());
+                
+                return (
+                  <TouchableOpacity
+                    key={index}
+                    style={[
+                      styles.calendarDay,
+                      isToday && { backgroundColor: theme.colors.secondaryContainer || theme.colors.primaryContainer },
+                      isSelected && {
+                        borderWidth: scale(2),
+                        borderColor: theme.colors.primary,
+                        borderRadius: scale(8),
+                      }
+                    ]}
+                    onPress={() => {
+                      setSelectedDate(currentDate);
+                      setShowDatePicker(false);
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <Text
+                      variant="bodyMedium"
+                      style={{
+                        color: isToday
+                          ? (theme.colors.onSecondaryContainer || theme.colors.onPrimaryContainer)
+                          : isCurrentMonth
+                            ? theme.colors.onSurface
+                            : theme.colors.onSurfaceVariant,
+                        opacity: isCurrentMonth ? 1 : 0.4,
+                        fontWeight: (isSelected || isToday) ? '600' : '400',
+                      }}
+                    >
+                      {currentDate.getDate()}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+            
+            <View style={styles.modalActions}>
+              <Button 
+                mode="outlined" 
+                onPress={() => setShowDatePicker(false)}
+                style={{ flex: 1, marginRight: scale(8) }}
+                labelStyle={{ color: theme.colors.onSurface }}
+              >
+                Cancel
+              </Button>
+
+              <Button 
+                mode="contained" 
+                onPress={() => {
+                  const today = new Date();
+                  setSelectedDate(today);
+                  setShowDatePicker(false);
+                }}
+                style={{ flex: 1, marginLeft: scale(8) }}
+                labelStyle={{ color: theme.colors.surface }}
+              >
+                Today
+              </Button>
+            </View>
+          </Surface>
+        </Modal>
+      </Portal>
     </View>
   );
 }
@@ -352,20 +574,61 @@ const styles = StyleSheet.create({
   bookAuthor: {
     marginBottom: verticalScale(8),
   },
+  starsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: verticalScale(8),
+  },
+  star: {
+    fontSize: scale(16),
+    marginRight: scale(2),
+  },
   categoriesContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     marginBottom: verticalScale(8),
+    gap: scale(6),
   },
   categoryChip: {
-    marginRight: scale(6),
-    marginBottom: scale(4),
+    height: scale(28),
+    borderRadius: scale(14),
+    paddingHorizontal: scale(10),
   },
   categoryChipText: {
-    fontSize: scale(10),
+    fontSize: scale(11),
+    lineHeight: scale(14),
   },
   progressText: {
     fontWeight: '500',
+  },
+  dateCard: {
+    marginBottom: verticalScale(16),
+    borderRadius: scale(12),
+  },
+  dateCardContent: {
+    padding: scale(16),
+  },
+  dateCardTitle: {
+    fontWeight: '600',
+    marginBottom: verticalScale(12),
+    textAlign: 'center',
+  },
+  dateSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  selectedDateText: {
+    flex: 1,
+    fontWeight: '500',
+  },
+  datePickerButton: {
+    paddingHorizontal: scale(12),
+    paddingVertical: verticalScale(8),
+    borderRadius: scale(8),
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: scale(50),
   },
   formContainer: {
     borderRadius: scale(12),
@@ -385,10 +648,6 @@ const styles = StyleSheet.create({
   pageInputContainer: {
     flex: 0.48,
   },
-  inputLabel: {
-    marginBottom: verticalScale(8),
-    fontWeight: '500',
-  },
   pageInput: {
     backgroundColor: 'transparent',
   },
@@ -403,5 +662,55 @@ const styles = StyleSheet.create({
   },
   saveButtonContent: {
     paddingVertical: verticalScale(8),
+  },
+  modalContainer: {
+    margin: scale(20),
+  },
+  modalSurface: {
+    borderRadius: scale(16),
+    padding: scale(20),
+  },
+  modalTitle: {
+    marginBottom: verticalScale(20),
+    textAlign: 'center',
+    fontWeight: '600',
+  },
+  monthNavigation: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: scale(16),
+    paddingVertical: verticalScale(12),
+  },
+  monthNavButton: {
+    width: scale(40),
+    height: scale(40),
+    borderRadius: scale(20),
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  monthYearText: {
+    fontWeight: '600',
+    textAlign: 'center',
+    flex: 1,
+  },
+  calendarGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginVertical: verticalScale(16),
+    paddingHorizontal: scale(8),
+  },
+  calendarDay: {
+    width: `${100 / 7}%`,
+    aspectRatio: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: scale(8),
+    marginBottom: scale(4),
+  },
+  modalActions: {
+    flexDirection: 'row',
+    marginTop: verticalScale(16),
+    gap: scale(8),
   },
 });

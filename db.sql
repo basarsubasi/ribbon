@@ -11,7 +11,7 @@ CREATE TABLE books (
     openlibrary_code TEXT UNIQUE, 
     year_published INTEGER,
     date_added DATE DEFAULT CURRENT_DATE, 
-    last_read  TIMESTAMP,
+    last_read  DATE,
     current_page INTEGER NOT NULL DEFAULT 0,
     review TEXT,
     notes TEXT,
@@ -72,20 +72,7 @@ CREATE TABLE page_logs (
     end_page INTEGER NOT NULL,
     current_page_after_log INTEGER NOT NULL,
     total_page_read INTEGER NOT NULL,
-    read_date DATE DEFAULT CURRENT_DATE,
-    read_time TEXT DEFAULT (STRFTIME('%H:%M', CURRENT_TIMESTAMP)),
+    read_date DATE NOT NULL,
     page_notes TEXT,
     FOREIGN KEY (book_id) REFERENCES books(book_id) ON DELETE CASCADE
 );
-
-CREATE TRIGGER update_book_last_read
-AFTER INSERT ON page_logs
-FOR EACH ROW
-BEGIN
-    UPDATE books
-    SET last_read = CURRENT_TIMESTAMP
-    WHERE book_id = NEW.book_id;
-END;
-
-
-

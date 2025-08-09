@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, FlatList, TouchableOpacity, Dimensions } from 'react-native';
-import { Text, Surface, FAB, IconButton, Divider, Modal, Portal, Card, Chip, Button } from 'react-native-paper';
+import { View, StyleSheet, FlatList, TouchableOpacity, Dimensions, Image } from 'react-native';
+import { Text, Surface, FAB, IconButton, Divider, Modal, Portal, Card, Chip, Button, ProgressBar } from 'react-native-paper';
 import { useTheme } from '../../context/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import CalendarIcon from '../../components/CalendarIcon';
@@ -8,7 +8,8 @@ import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, FontAwesome } from '@expo/vector-icons';
+import { getCoverImageUri } from '../../utils/imageUtils';
 
 interface PageLogItem {
   page_log_id: number;
@@ -16,13 +17,26 @@ interface PageLogItem {
   title: string;
   start_page: number;
   end_page: number;
+  current_page_after_log: number;
   total_page_read: number;
-  read_time: string;
   page_notes?: string;
+  read_time?: string;
+  // Book data
+  cover_url?: string;
+  cover_path?: string;
+  number_of_pages: number;
+  current_page: number;
+  stars?: number;
+  book_type: string;
+  year_published?: number;
+  authors: string[];
+  categories: string[];
 }
 
 const { width: screenWidth } = Dimensions.get('window');
 const DAYS_TO_SHOW = 7;
+const COVER_WIDTH = screenWidth * 0.2;
+const COVER_HEIGHT = COVER_WIDTH * 1.5;
 
 // Local date key (avoids timezone shifting that happens with toISOString)
 const formatDateKey = (d: Date) => {
@@ -61,20 +75,42 @@ export default function Calendar() {
     setLoading(true);
     try {
       const result = await db.getAllAsync<any>(`
-        SELECT pl.*, b.title FROM page_logs pl
+        SELECT 
+          pl.*, 
+          b.*,
+          GROUP_CONCAT(DISTINCT a.name) as authors,
+          GROUP_CONCAT(DISTINCT c.name) as categories
+        FROM page_logs pl
         JOIN books b ON b.book_id = pl.book_id
+        LEFT JOIN book_authors ba ON b.book_id = ba.book_id
+        LEFT JOIN authors a ON ba.author_id = a.author_id
+        LEFT JOIN book_categories bc ON b.book_id = bc.book_id
+        LEFT JOIN categories c ON bc.category_id = c.category_id
         WHERE pl.read_date = ?
-        ORDER BY pl.read_time DESC
+        GROUP BY pl.page_log_id
+        ORDER BY pl.page_log_id DESC 
       `, [key]);
+      
       setLogs(result.map(r => ({
         page_log_id: r.page_log_id,
         book_id: r.book_id,
         title: r.title,
         start_page: r.start_page,
         end_page: r.end_page,
+        current_page_after_log: r.current_page_after_log,
         total_page_read: r.total_page_read,
         read_time: r.read_time,
         page_notes: r.page_notes,
+        // Book data
+        cover_url: r.cover_url,
+        cover_path: r.cover_path,
+        number_of_pages: r.number_of_pages,
+        current_page: r.current_page,
+        stars: r.stars,
+        book_type: r.book_type,
+        year_published: r.year_published,
+        authors: r.authors ? r.authors.split(',') : [],
+        categories: r.categories ? r.categories.split(',') : []
       })));
     } catch (e) {
       console.warn('Failed loading logs', e);
@@ -153,7 +189,11 @@ export default function Calendar() {
           { backgroundColor: baseBg },
           isSelected && {
             borderWidth: scale(2),
-            borderColor: hasLogs ? theme.colors.onPrimary : theme.colors.primary,
+            borderColor: todayFlag 
+              ? theme.colors.secondaryContainer || theme.colors.primaryContainer
+              : hasLogs 
+                ? theme.colors.onPrimary 
+                : theme.colors.primary,
           }
         ]}
         activeOpacity={0.8}
@@ -186,32 +226,146 @@ export default function Calendar() {
     );
   };
 
-  const renderLogCard = ({ item }: { item: PageLogItem }) => (
-    <Card style={[styles.logCard, { backgroundColor: theme.colors.surface }]} mode="outlined">
-      <Card.Content>
-        <View style={styles.logHeader}>
-          <Text variant="titleMedium" style={[styles.bookTitle, { color: theme.colors.onSurface }]}>
-            {item.title}
-          </Text>
-          <Chip 
-            compact
-            textStyle={styles.timeChipText}
-            style={[styles.timeChip, { backgroundColor: theme.colors.primaryContainer }]}
-          >
-            {item.read_time}
-          </Chip>
-        </View>
-        <Text variant="bodyMedium" style={[styles.pageInfo, { color: theme.colors.onSurfaceVariant }]}>
-          Pages {item.start_page}–{item.end_page} · {item.total_page_read} pages read
-        </Text>
-        {item.page_notes && (
-          <Text variant="bodySmall" style={[styles.notePreview, { color: theme.colors.onSurfaceVariant }]}>
-            {item.page_notes.length > 80 ? item.page_notes.substring(0, 80) + '…' : item.page_notes}
-          </Text>
-        )}
-      </Card.Content>
-    </Card>
-  );
+  const renderLogCard = ({ item }: { item: PageLogItem }) => {
+    // Use current_page_after_log for progress calculation (snapshot at log time)
+    const completion = item.current_page_after_log / item.number_of_pages;
+    const completionText = `${Math.round(completion * 100)}%`;
+    
+    return (
+      <TouchableOpacity 
+        onPress={() => navigation.navigate('LogDetails', { 
+          logId: item.page_log_id,
+          bookId: item.book_id 
+        })} 
+        activeOpacity={0.7}
+      >
+        <Card style={[styles.bookCard, { backgroundColor: theme.colors.surface }]} elevation={2}>
+          <Card.Content style={styles.bookContent}>
+            {/* Book Cover */}
+            <View style={styles.coverContainer}>
+              {getCoverImageUri(item.cover_path, item.cover_url) ? (
+                <Image 
+                  source={{ uri: getCoverImageUri(item.cover_path, item.cover_url)! }} 
+                  style={styles.coverImage}
+                  resizeMode="cover"
+                />
+              ) : (
+                <View style={[styles.coverPlaceholder, { backgroundColor: theme.colors.surfaceVariant }]}>
+                  <FontAwesome name="book" size={24} color={theme.colors.onSurface} />
+                </View>
+              )}
+            </View>
+            
+            {/* Book Info */}
+            <View style={styles.bookInfo}>
+              <View style={styles.titleRow}>
+                <Text 
+                  variant="titleMedium" 
+                  style={[styles.bookTitle, { color: theme.colors.onSurface }]}
+                  numberOfLines={2}
+                >
+                  {item.title}
+                  {item.year_published && (
+                    <Text 
+                      variant="bodySmall" 
+                      style={[styles.yearInTitle, { color: theme.colors.onSurfaceVariant }]}
+                    >
+                      {' '}({item.year_published})
+                    </Text>
+                  )}
+                </Text>
+              </View>
+              
+              <Text 
+                variant="bodyMedium" 
+                style={[styles.bookAuthor, { color: theme.colors.onSurfaceVariant }]}
+                numberOfLines={1}
+              >
+                {item.authors.join(', ') || 'Unknown Author'}
+              </Text>
+              
+              {/* Stars Rating */}
+              {item.stars && item.stars > 0 && (
+                <View style={styles.starsContainer}>
+                  {[...Array(item.stars)].map((_, index) => (
+                    <Text key={index} style={[styles.star, { color: theme.colors.primary }]}>
+                      ★
+                    </Text>
+                  ))}
+                </View>
+              )}
+              
+              {/* Categories - all using secondaryContainer color */}
+              {item.categories.length > 0 && (
+                <View style={styles.categoriesContainer}>
+                  {item.categories.slice(0, 2).map((category, index) => (
+                    <Chip
+                      key={`${category}-${index}`}
+                      style={[
+                        styles.categoryChip, 
+                        { backgroundColor: theme.colors.secondaryContainer }
+                      ]}
+                      textStyle={[styles.categoryChipText, { color: theme.colors.onSecondaryContainer }]}
+                      compact
+                    >
+                      {category.length > 15 ? `${category.substring(0, 15)}...` : category}
+                    </Chip>
+                  ))}
+                  {item.categories.length > 2 && (
+                    <Text style={[styles.moreCategories, { color: theme.colors.onSurfaceVariant }]}>
+                      +{item.categories.length - 2} more
+                    </Text>
+                  )}
+                </View>
+              )}
+              
+              {/* Log info chips - moved below categories */}
+              <View style={styles.logInfoContainer}>
+                <Chip 
+                  compact
+                  textStyle={styles.logChipText}
+                  style={[styles.logChip, { backgroundColor: theme.colors.primaryContainer }]}
+                >
+                  Pages {item.start_page}–{item.end_page} · {item.total_page_read} pages
+                </Chip>
+                {item.read_time && (
+                  <Chip 
+                    compact
+                    textStyle={styles.timeChipText}
+                    style={[styles.timeChip, { backgroundColor: theme.colors.tertiaryContainer }]}
+                  >
+                    {item.read_time}
+                  </Chip>
+                )}
+              </View>
+              
+              {/* Notes preview */}
+              {item.page_notes && (
+                <Text variant="bodySmall" style={[styles.notePreview, { color: theme.colors.onSurfaceVariant }]}>
+                  {item.page_notes.length > 60 ? item.page_notes.substring(0, 60) + '…' : item.page_notes}
+                </Text>
+              )}
+              
+              {/* Progress Bar - using current_page_after_log for snapshot */}
+              <View style={styles.progressContainer}>
+                <ProgressBar 
+                  progress={completion}
+                  color={theme.colors.primary}
+                  style={styles.progressBar}
+                />
+                <Text 
+                  variant="bodySmall" 
+                  style={[styles.progressText, { color: theme.colors.onSurfaceVariant }]}
+                >
+                  {completionText}
+                </Text>
+              </View>
+            </View>
+          </Card.Content>
+        </Card>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
@@ -585,36 +739,127 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     opacity: 0.7,
   },
-  logCard: {
-    marginBottom: verticalScale(12),
-    borderRadius: scale(12),
+  // Library-style book card styles
+  bookCard: {
+    marginBottom: scale(16),
   },
-  logHeader: {
+  bookContent: {
     flexDirection: 'row',
+    padding: scale(16),
+  },
+  coverContainer: {
+    marginRight: scale(12),
+  },
+  coverImage: {
+    width: COVER_WIDTH,
+    height: COVER_HEIGHT,
+    borderRadius: scale(4),
+  },
+  coverPlaceholder: {
+    width: COVER_WIDTH,
+    height: COVER_HEIGHT,
+    borderRadius: scale(4),
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  bookInfo: {
+    flex: 1,
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: verticalScale(8),
   },
   bookTitle: {
-    flex: 1,
     fontWeight: '600',
+    marginBottom: scale(4),
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    flexWrap: 'nowrap',
+    marginBottom: scale(4),
+  },
+  yearInTitle: {
+    marginLeft: scale(6),
+    flexShrink: 0,
+  },
+  bookAuthor: {
+    marginBottom: scale(8),
+  },
+  starsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: scale(8),
+  },
+  star: {
+    fontSize: scale(16),
+    marginRight: scale(2),
+  },
+  logInfoContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    marginBottom: scale(8),
+    gap: scale(6),
+  },
+  logChip: {
+    height: scale(28),
+    borderRadius: scale(14),
+    paddingHorizontal: scale(10),
+  },
+  logChipText: {
+    fontSize: scale(11),
+    lineHeight: scale(14),
   },
   timeChip: {
-    marginLeft: scale(8),
+    height: scale(28),
+    borderRadius: scale(14),
+    paddingHorizontal: scale(10),
   },
   timeChipText: {
-    fontSize: scale(10),
+    fontSize: scale(11),
+    lineHeight: scale(14),
     fontWeight: '600',
   },
-  pageInfo: {
-    fontWeight: '500',
-    marginBottom: verticalScale(4),
+  categoriesContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    marginBottom: scale(8),
+    gap: scale(6),
+  },
+  categoryChip: {
+    height: scale(28),
+    borderRadius: scale(14),
+    paddingHorizontal: scale(10),
+    marginBottom: scale(2),
+  },
+  categoryChipText: {
+    fontSize: scale(11),
+    lineHeight: scale(14),
+  },
+  moreCategories: {
+    fontSize: scale(11),
+    fontStyle: 'italic',
+    marginTop: scale(2),
   },
   notePreview: {
-    marginTop: verticalScale(6),
+    marginTop: verticalScale(4),
+    marginBottom: verticalScale(6),
     fontStyle: 'italic',
     lineHeight: scale(16),
   },
+  progressContainer: {
+    marginTop: scale(8),
+    marginBottom: scale(1),
+  },
+  progressBar: {
+    height: scale(6),
+    borderRadius: scale(3),
+    marginBottom: scale(1),
+  },
+  progressText: {
+    fontSize: scale(12),
+    textAlign: 'right',
+  },
+  // Modal styles
   fab: {
     position: 'absolute',
     bottom: verticalScale(20),
