@@ -29,7 +29,6 @@ import Library from './screens/library/Library';
 import AddBook from './screens/library/AddBook';
 import LibraryBookDetails from './screens/library/LibraryBookDetails';
 import OpenLibraryBookDetails from './screens/library/OpenLibraryBookDetails';
-import EditBook from './screens/library/EditBook';
 import ScanBarcode from './screens/library/ScanBarcode';
 import SearchBook from './screens/library/SearchBook';
 
@@ -37,7 +36,6 @@ import Calendar from './screens/page_logs/Calendar';
 import ChooseBook from './screens/page_logs/ChooseBook';
 import LogPages from './screens/page_logs/LogPages';
 import LogDetails from './screens/page_logs/LogDetails';
-import EditLog from './screens/page_logs/EditLog';
 import Settings from './screens/Settings';
 
 
@@ -83,7 +81,6 @@ function LibraryStackNavigator() {
       <LibraryStack.Screen name="AddBook" component={AddBook} options={{ headerShown: false }}   />
       <LibraryStack.Screen name="LibraryBookDetails" component={LibraryBookDetails} options={{ headerShown: false }} />
       <LibraryStack.Screen name="OpenLibraryBookDetails" component={OpenLibraryBookDetails} options={{ headerShown: false }} />
-      <LibraryStack.Screen name="EditBook" component={EditBook} options={{ headerShown: false }} />
       <LibraryStack.Screen name="ScanBarcode" component={ScanBarcode} options={{ headerShown: false }} />
       <LibraryStack.Screen name="SearchBook" component={SearchBook} options={{ headerShown: false }} />
     </LibraryStack.Navigator>
@@ -99,7 +96,6 @@ function PageLogsStackNavigator() {
       <PageLogsStack.Screen name="ChooseBook" component={ChooseBook} options={{ headerShown: false }} />
       <PageLogsStack.Screen name="LogPages" component={LogPages} options={{ headerShown: false }} />
       <PageLogsStack.Screen name="LogDetails" component={LogDetails} options={{ headerShown: false }} />
-      <PageLogsStack.Screen name="EditLog" component={EditLog} options={{ headerShown: false }} />
     </PageLogsStack.Navigator>
   );
 }

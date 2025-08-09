@@ -237,11 +237,11 @@ export default function Calendar() {
           { backgroundColor: baseBg },
           isSelected && {
             borderWidth: scale(2),
-            borderColor: todayFlag 
-              ? theme.colors.secondaryContainer || theme.colors.primaryContainer
-              : hasLogs 
-                ? theme.colors.onPrimary 
-                : theme.colors.primary,
+            borderColor: hasLogs 
+              ? theme.colors.onPrimary 
+              : todayFlag
+                ? theme.colors.primary
+                : theme.colors.secondaryContainer
           }
         ]}
         activeOpacity={0.8}
@@ -571,7 +571,7 @@ export default function Calendar() {
                 const bg = hasLogs
                   ? theme.colors.primaryContainer
                   : isToday
-                    ? theme.colors.secondary
+                    ? theme.colors.secondaryContainer
                     : 'transparent';
 
                 return (
