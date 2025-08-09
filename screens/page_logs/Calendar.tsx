@@ -24,7 +24,13 @@ interface PageLogItem {
 const { width: screenWidth } = Dimensions.get('window');
 const DAYS_TO_SHOW = 7;
 
-const formatDateKey = (d: Date) => d.toISOString().slice(0,10);
+// Local date key (avoids timezone shifting that happens with toISOString)
+const formatDateKey = (d: Date) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
 
 export default function Calendar() {
   const { theme } = useTheme();
@@ -38,6 +44,7 @@ export default function Calendar() {
   const [showPicker, setShowPicker] = useState(false);
   const [pickerMonth, setPickerMonth] = useState<Date>(new Date());
   const [loading, setLoading] = useState(false);
+  const [logPresence, setLogPresence] = useState<Record<string, boolean>>({});
 
   const buildStrip = useCallback((center: Date) => {
     const days: Date[] = [];
@@ -85,6 +92,27 @@ export default function Calendar() {
 
   useEffect(() => { buildStrip(selectedDate); }, [selectedDate, buildStrip]);
 
+  // Load log presence for visible strip dates
+  useEffect(() => {
+    const loadPresence = async () => {
+      if (!dateStrip.length) return;
+      try {
+        const keys = dateStrip.map(formatDateKey);
+        const placeholders = keys.map(() => '?').join(',');
+        const rows = await db.getAllAsync<any>(
+          `SELECT read_date, COUNT(*) cnt FROM page_logs WHERE read_date IN (${placeholders}) GROUP BY read_date`,
+          keys
+        );
+        const map: Record<string, boolean> = {};
+        rows.forEach(r => { map[r.read_date] = r.cnt > 0; });
+        setLogPresence(map);
+      } catch (e) {
+        console.warn('Failed loading presence', e);
+      }
+    };
+    loadPresence();
+  }, [dateStrip, db]);
+
   const changeDay = (offset: number) => {
     const d = new Date(selectedDate);
     d.setDate(d.getDate() + offset);
@@ -97,8 +125,15 @@ export default function Calendar() {
   };
 
   const renderDay = ({ item }: { item: Date }) => {
-    const isSelected = formatDateKey(item) === formatDateKey(selectedDate);
+    const key = formatDateKey(item);
+    const isSelected = key === formatDateKey(selectedDate);
     const todayFlag = isToday(item);
+    const hasLogs = !!logPresence[key];
+    const baseBg = hasLogs
+      ? theme.colors.primary
+      : todayFlag
+        ? (theme.colors.secondaryContainer || theme.colors.primaryContainer)
+        : 'transparent';
     
     return (
       <TouchableOpacity 
@@ -114,21 +149,36 @@ export default function Calendar() {
           setSelectedDate(item);
         }} 
         style={[
-          styles.dayItem, 
-          isSelected && { backgroundColor: theme.colors.primary },
-          todayFlag && !isSelected && { backgroundColor: theme.colors.primaryContainer }
+          styles.dayItem,
+          { backgroundColor: baseBg },
+          isSelected && {
+            borderWidth: scale(2),
+            borderColor: hasLogs ? theme.colors.onPrimary : theme.colors.primary,
+          }
         ]}
         activeOpacity={0.8}
       >        
         <Text style={[
           styles.dayDow, 
-          { color: isSelected ? '#fff' : todayFlag ? theme.colors.onPrimaryContainer : theme.colors.onSurfaceVariant }
+          { 
+            color: hasLogs
+              ? theme.colors.onPrimary
+              : todayFlag
+                ? (theme.colors.onSecondaryContainer || theme.colors.onPrimaryContainer)
+                : theme.colors.onSurfaceVariant 
+          }
         ]}>
           {item.toLocaleDateString(undefined, { weekday: 'short' })}
         </Text>
         <Text style={[
           styles.dayNum, 
-          { color: isSelected ? '#fff' : todayFlag ? theme.colors.onPrimaryContainer : theme.colors.onSurface }
+          { 
+            color: hasLogs
+              ? theme.colors.onPrimary
+              : todayFlag
+                ? (theme.colors.onSecondaryContainer || theme.colors.onPrimaryContainer)
+                : theme.colors.onSurface 
+          }
         ]}>
           {item.getDate()}
         </Text>
@@ -302,16 +352,27 @@ export default function Calendar() {
                 currentDate.setDate(startOfWeek.getDate() + index);
                 
                 const isCurrentMonth = currentDate.getMonth() === pickerMonth.getMonth();
-                const isSelected = formatDateKey(currentDate) === formatDateKey(selectedDate);
-                const isToday = formatDateKey(currentDate) === formatDateKey(new Date());
+                const key = formatDateKey(currentDate);
+                const isSelected = key === formatDateKey(selectedDate);
+                const isToday = key === formatDateKey(new Date());
+                const hasLogs = !!logPresence[key];
+                const bg = hasLogs
+                  ? theme.colors.primary
+                  : isToday
+                    ? (theme.colors.secondaryContainer || theme.colors.primaryContainer)
+                    : 'transparent';
                 
                 return (
                   <TouchableOpacity
                     key={index}
                     style={[
                       styles.calendarDay,
-                      isSelected && { backgroundColor: theme.colors.primary },
-                      isToday && !isSelected && { backgroundColor: theme.colors.primaryContainer },
+                      { backgroundColor: bg },
+                      isSelected && {
+                        borderWidth: scale(2),
+                        borderColor: hasLogs ? theme.colors.onPrimary : theme.colors.primary,
+                        borderRadius: scale(8),
+                      }
                     ]}
                     onPress={() => {
                       setSelectedDate(currentDate);
@@ -323,15 +384,15 @@ export default function Calendar() {
                     <Text
                       variant="bodyMedium"
                       style={{
-                        color: isSelected 
-                          ? theme.colors.onPrimary 
-                          : isToday 
-                            ? theme.colors.onPrimaryContainer 
-                            : isCurrentMonth 
-                              ? theme.colors.onSurface 
+                        color: hasLogs
+                          ? theme.colors.onPrimary
+                          : isToday
+                            ? (theme.colors.onSecondaryContainer || theme.colors.onPrimaryContainer)
+                            : isCurrentMonth
+                              ? theme.colors.onSurface
                               : theme.colors.onSurfaceVariant,
                         opacity: isCurrentMonth ? 1 : 0.4,
-                        fontWeight: isSelected || isToday ? '600' : '400',
+                        fontWeight: (isSelected || isToday || hasLogs) ? '600' : '400',
                       }}
                     >
                       {currentDate.getDate()}
