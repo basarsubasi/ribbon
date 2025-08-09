@@ -8,6 +8,7 @@ import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { Ionicons } from '@expo/vector-icons';
 
 interface PageLogItem {
   page_log_id: number;
@@ -173,8 +174,8 @@ export default function Calendar() {
             primaryColor={theme.colors.primary} 
             accentColor={theme.colors.onSurface}
           />
-          <Text variant="headlineSmall" style={[styles.headerTitle, { color: theme.colors.onSurface }]}>
-            reading calendar
+          <Text variant="headlineSmall" style={[styles.headerTitle, { color: theme.colors.primary }]}>
+            calendar
           </Text>
         </View>
       </View>
@@ -188,16 +189,14 @@ export default function Calendar() {
             {selectedDate.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
           </Text>
           <TouchableOpacity 
-            style={[styles.jumpButton, { backgroundColor: theme.colors.primaryContainer }]}
+            style={[styles.jumpButton, { backgroundColor: theme.colors.primary }]}
             onPress={() => {
               setPickerMonth(new Date(selectedDate));
               setShowPicker(true);
             }}
             activeOpacity={0.8}
           >
-            <Text variant="labelMedium" style={{ color: theme.colors.onPrimaryContainer, fontWeight: '600' }}>
-              📅
-            </Text>
+            <Ionicons name="calendar" size={18} color={theme.colors.surface} />
           </TouchableOpacity>
         </View>
         
@@ -230,17 +229,11 @@ export default function Calendar() {
         onRefresh={loadLogs}
         ListEmptyComponent={() => (
           <View style={styles.emptyState}>
-            <CalendarIcon 
-              width={scale(48)} 
-              height={scale(48)} 
-              primaryColor={theme.colors.outline}
-              accentColor={theme.colors.outline}
-            />
             <Text variant="bodyLarge" style={[styles.emptyText, { color: theme.colors.onSurfaceVariant }]}>
               No reading sessions on {selectedDate.toLocaleDateString()}
             </Text>
             <Text variant="bodySmall" style={[styles.emptySubtext, { color: theme.colors.onSurfaceVariant }]}>
-              Start reading and track your progress
+              Start reading!
             </Text>
           </View>
         )}
@@ -251,8 +244,8 @@ export default function Calendar() {
         icon="book-plus"
         style={[styles.fab, { backgroundColor: theme.colors.primary }]}
         onPress={() => navigation.navigate('LogPages')}
-        label="Log Reading"
         mode="elevated"
+        color={theme.colors.surface}
       />
 
       {/* Date Picker Modal */}
@@ -270,7 +263,7 @@ export default function Calendar() {
             {/* Month Navigation */}
             <View style={styles.monthNavigation}>
               <TouchableOpacity
-                style={[styles.monthNavButton, { backgroundColor: theme.colors.primaryContainer }]}
+                style={[styles.monthNavButton, { backgroundColor: theme.colors.background }]}
                 onPress={() => {
                   const newMonth = new Date(pickerMonth);
                   newMonth.setMonth(pickerMonth.getMonth() - 1);
@@ -286,7 +279,7 @@ export default function Calendar() {
               </Text>
               
               <TouchableOpacity
-                style={[styles.monthNavButton, { backgroundColor: theme.colors.primaryContainer }]}
+                style={[styles.monthNavButton, { backgroundColor: theme.colors.background }]}
                 onPress={() => {
                   const newMonth = new Date(pickerMonth);
                   newMonth.setMonth(pickerMonth.getMonth() + 1);
@@ -349,8 +342,18 @@ export default function Calendar() {
             </View>
             
             <View style={styles.modalActions}>
-              <Button 
+
+               <Button 
                 mode="outlined" 
+                onPress={() => setShowPicker(false)}
+                style={{ flex: 1, marginLeft: scale(8) }}
+                labelStyle={{ color: theme.colors.onSurface }}
+              >
+                Cancel
+              </Button>
+
+              <Button 
+                mode="contained" 
                 onPress={() => {
                   const today = new Date();
                   setSelectedDate(today);
@@ -358,16 +361,11 @@ export default function Calendar() {
                   setShowPicker(false);
                 }}
                 style={{ flex: 1, marginRight: scale(8) }}
+                labelStyle={{ color: theme.colors.surface }}
               >
                 Today
               </Button>
-              <Button 
-                mode="contained" 
-                onPress={() => setShowPicker(false)}
-                style={{ flex: 1, marginLeft: scale(8) }}
-              >
-                Done
-              </Button>
+
             </View>
           </Surface>
         </Modal>
