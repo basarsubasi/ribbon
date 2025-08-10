@@ -82,12 +82,13 @@ const Stats = () => {
   const timeframeOptions: TimeframeOption[] = [
     { key: 'today', label: 'Today', filter: `AND pl.read_date = '${new Date().toISOString().split('T')[0]}'` },
     { key: 'week', label: 'This Week', filter: `AND pl.read_date >= '${new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}'` },
+    { key: 'month', label: 'This Month', filter: `AND pl.read_date >= '${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-01'` },
     { key: 'year', label: 'This Year', filter: `AND pl.read_date >= '${new Date().getFullYear()}-01-01'` },
     { key: 'all', label: 'All Time', filter: '' }
   ];
 
   const [selectedChart, setSelectedChart] = useState<ChartOption>(chartOptions[1]);
-  const [selectedTimeframe, setSelectedTimeframe] = useState<TimeframeOption>(timeframeOptions[3]);
+  const [selectedTimeframe, setSelectedTimeframe] = useState<TimeframeOption>(timeframeOptions[2]);
 
   const loadData = useCallback(async () => {
     if (selectedChart.type === 'general') return;
