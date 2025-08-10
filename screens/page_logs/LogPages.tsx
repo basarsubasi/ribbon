@@ -189,25 +189,12 @@ export default function LogPages() {
       
       await db.runAsync(updateQuery, updateParams);
 
-      Alert.alert(
-        'Success!', 
-        `Logged reading session: pages ${start}-${end} (${totalPagesRead} pages)`,
-        [
-          { text: 'Log More Pages', onPress: () => {
-            const newCurrentPage = end > bookData.current_page ? end : bookData.current_page;
-            setStartPage(newCurrentPage.toString());
-            setEndPage('');
-            setNotes('');
-            setBookData(prev => prev ? { ...prev, current_page: newCurrentPage } : null);
-          }},
-          { text: 'Done', onPress: () => navigation.navigate('Calendar') }
-        ]
-      );
     } catch (error) {
       console.error('Error saving log:', error);
       Alert.alert('Error', 'Failed to save reading log');
     } finally {
       setSaving(false);
+      navigation.navigate('Calendar');
     }
   };
 

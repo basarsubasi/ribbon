@@ -21,6 +21,7 @@ import { PageLogsStackParamList } from '../../utils/types';
 import { useSQLiteContext } from 'expo-sqlite';
 import { getCoverImageUri } from '../../utils/imageUtils';
 import { FontAwesome, Ionicons } from '@expo/vector-icons';
+import Calendar from './Calendar';
 
 type LogDetailsRouteProp = RouteProp<PageLogsStackParamList, 'LogDetails'>;
 type LogDetailsNavigationProp = StackNavigationProp<PageLogsStackParamList, 'LogDetails'>;
@@ -202,11 +203,17 @@ export default function LogDetails() {
       `, [start, end, currentPageAfterLog, totalPagesRead, logDate, notes || null, logId]);
 
 
-    } catch (error) {
+    }
+    
+    
+    
+    catch (error) {
       console.error('Error updating log:', error);
       Alert.alert('Error', 'Failed to update reading log');
     } finally {
       setSaving(false);
+      navigation.navigate('Calendar');
+
     }
   };
 

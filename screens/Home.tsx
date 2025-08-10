@@ -14,14 +14,33 @@ import {
 import { useTheme } from '../context/ThemeContext';
 import BookIcon from '../components/BookIcon';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import { CompositeNavigationProp } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 import { useSQLiteContext } from 'expo-sqlite';
 import { getCoverImageUri } from '../utils/imageUtils';
 import { FontAwesome } from '@expo/vector-icons';
+import { PageLogsStackParamList } from '../utils/types';
 
 
 const { width } = Dimensions.get('window');
+
+// Define the tab navigator param list
+type TabParamList = {
+  Home: undefined;
+  LibraryStack: undefined;
+  PageLogsStack: undefined;
+  Stats: undefined;
+  Settings: undefined;
+};
+
+// Define the navigation type for Home screen
+type HomeScreenNavigationProp = CompositeNavigationProp<
+  BottomTabNavigationProp<TabParamList, 'Home'>,
+  StackNavigationProp<PageLogsStackParamList>
+>;
 
 interface BookInProgress {
   book_id: number;
@@ -49,7 +68,7 @@ interface ReadingStats {
 
 const Home = () => {
   const { theme } = useTheme();
-  const navigation = useNavigation();
+  const navigation = useNavigation<HomeScreenNavigationProp>();
   const { t } = useTranslation();
   const db = useSQLiteContext();
   
@@ -210,8 +229,8 @@ const Home = () => {
       <TouchableOpacity
         key={book.book_id}
         onPress={() => {
-          // Navigate to LogPages with book ID and today's date
-          (navigation as any).navigate('PageLogs', {
+          // Navigate to PageLogs with book ID and today's date
+          (navigation as any).navigate('PageLogsStack', {
             screen: 'LogPages',
             params: { bookId: book.book_id }
           });
@@ -291,7 +310,7 @@ const Home = () => {
                   ))}
                   {book.categories.length > 2 && (
                     <Text style={[styles.moreCategories, { color: theme.colors.onSurfaceVariant }]}>
-                      +{book.categories.length - 2}
+                      +{book.categories.length - 2} more 
                     </Text>
                   )}
                 </View>
@@ -385,7 +404,7 @@ const Home = () => {
               {/* See All Button */}
               <Button
                 mode="contained"
-                onPress={() => (navigation as any).navigate('Library')}
+                onPress={() => navigation.navigate('LibraryStack')}
                 style={[styles.seeAllButton, { borderColor: theme.colors.outline }]}
                 contentStyle={styles.seeAllButtonContent}
                 labelStyle={[styles.seeAllText, { color: theme.colors.surface }]}
@@ -405,7 +424,7 @@ const Home = () => {
                 <Button
                   mode="contained"
                   style={[styles.addBookButton, { backgroundColor: theme.colors.primary }]}
-                  onPress={() => (navigation as any).navigate('Library')}
+                  onPress={() => navigation.navigate('LibraryStack')}
                   contentStyle={{ paddingVertical: verticalScale(4) }}
                   labelStyle={{ color: '#FFFFFF' }}
                 >
@@ -427,7 +446,7 @@ const Home = () => {
               size={24}
               iconColor={theme.colors.primary}
               style={styles.statsButton}
-              onPress={() => (navigation as any).navigate('Stats')}
+              onPress={() => navigation.navigate('Stats')}
             />
           </View>
           <View style={styles.statsGrid}>
@@ -593,7 +612,9 @@ const styles = StyleSheet.create({
   },
   moreCategories: {
     fontSize: scale(10),
+    fontStyle: 'italic',
     fontWeight: '500',
+    marginTop: scale(1),
   },
   progressContainer: {
     marginTop: verticalScale(4),

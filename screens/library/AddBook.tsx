@@ -503,22 +503,13 @@ export default function AddBook() {
         await db.runAsync('INSERT INTO book_publishers (book_id, publisher_id) VALUES (?, ?)', [bookId, publisherId]);
       }
       
-      Alert.alert(
-        t('addBook.success'),
-        t('addBook.bookAdded'),
-        [
-          {
-            text: t('common.ok'),
-            onPress: () => navigation.goBack()
-          }
-        ]
-      );
       
     } catch (error) {
       console.error('Error saving book:', error);
       Alert.alert(t('addBook.error'), t('addBook.errorMessage'));
     } finally {
       setLoading(false);
+      navigation.navigate('Library');
     }
   };
 
