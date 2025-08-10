@@ -66,6 +66,7 @@ interface ReadingStats {
   pagesReadToday: number;
   pagesReadThisWeek: number;
   readingStreak: number;
+  finishedBooks: number;
 }
 
 
@@ -81,6 +82,7 @@ const Home = () => {
     pagesReadToday: 0,
     pagesReadThisWeek: 0,
     readingStreak: 0,
+    finishedBooks: 0,
   });
   const [booksInProgress, setBooksInProgress] = useState<BookInProgress[]>([]);
   const [loading, setLoading] = useState(true);
@@ -212,12 +214,20 @@ const Home = () => {
         if (streak > 365) break;
       }
 
+      // Get finished books count (books where current_page = number_of_pages)
+      const finishedBooksResult = await db.getAllAsync<{ count: number }>(`
+        SELECT COUNT(*) as count FROM books 
+        WHERE current_page >= number_of_pages AND number_of_pages > 0
+      `);
+      const finishedBooks = finishedBooksResult[0]?.count || 0;
+
       setStats({
         totalBooks,
         currentlyReading,
         pagesReadToday,
         pagesReadThisWeek,
         readingStreak: streak,
+        finishedBooks,
       });
     } catch (error) {
       console.error('Error loading reading stats:', error);
@@ -533,6 +543,12 @@ const Home = () => {
               title={t('home.readingStreak')} 
               value={`${stats.readingStreak} ${t('home.days')}`} 
               subtitle={stats.readingStreak > 0 ? t('home.keepItUp') : t('home.startStreak')}
+            />
+            
+            {/* Finished Books card */}
+            <StatCard 
+              title={t('home.finishedBooks')} 
+              value={stats.finishedBooks} 
             />
           </View>
           
