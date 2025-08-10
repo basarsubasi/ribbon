@@ -36,6 +36,7 @@ import {
   initializeImageDirectories 
 } from '../../utils/imageUtils';
 import * as FileSystem from 'expo-file-system';
+import ImagePickerModal from '../../components/ImagePickerModal';
 import Library from './Library';
 
 type LibraryBookDetailsRouteProp = RouteProp<LibraryStackParamList, 'LibraryBookDetails'>;
@@ -131,6 +132,7 @@ export default function LibraryBookDetails() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [bookData, setBookData] = useState<LibraryBook | null>(null);
+  const [imagePickerModalVisible, setImagePickerModalVisible] = useState(false);
 
   useEffect(() => {
     loadBookData();
@@ -237,15 +239,7 @@ export default function LibraryBookDetails() {
       return;
     }
 
-    Alert.alert(
-      t('addBook.selectImage'),
-      t('addBook.selectImageMessage'),
-      [
-        { text: t('addBook.camera'), onPress: openCamera },
-        { text: t('addBook.gallery'), onPress: openGallery },
-        { text: t('scanner.cancel'), style: 'cancel' }
-      ]
-    );
+    setImagePickerModalVisible(true);
   };
 
   const openCamera = async () => {
@@ -993,6 +987,14 @@ export default function LibraryBookDetails() {
           </View>
         </View>
       </ScrollView>
+      
+      {/* Image Picker Modal */}
+      <ImagePickerModal
+        visible={imagePickerModalVisible}
+        onDismiss={() => setImagePickerModalVisible(false)}
+        onCamera={openCamera}
+        onGallery={openGallery}
+      />
     </View>
   );
 }

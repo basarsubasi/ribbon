@@ -530,7 +530,6 @@ const Home = () => {
               title={t('home.pagesToday')} 
               value={stats.pagesReadToday} 
               subtitle={stats.pagesReadToday > 0 ? t('home.greatProgress') : t('home.noReadingToday')} 
-              progress={Math.min(stats.pagesReadToday / 50, 1)} // Assume 50 pages is 100%
             />
             <StatCard 
               title={t('home.thisWeek')} 
