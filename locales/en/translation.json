@@ -189,6 +189,12 @@
     "cameraPermissionTitle": "Camera Permission Required",
     "cameraPermissionMessage": "We need access to your camera to take photos."
   },
+  "stats": {
+    "title": "Statistics",
+    "subtitle": "Track your reading journey",
+    "chartType": "Chart Type",
+    "timeframe": "Timeframe"
+  },
   "common": {
     "add": "Add",
     "ok": "OK",

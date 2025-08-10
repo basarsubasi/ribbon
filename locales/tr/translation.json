@@ -189,6 +189,12 @@
     "cameraPermissionTitle": "Kamera İzni Gerekli",
     "cameraPermissionMessage": "Fotoğraf çekmek için kamera erişimine ihtiyacımız var."
   },
+  "stats": {
+    "title": "İstatistikler",
+    "subtitle": "Okuma yolculuğunuzu takip edin",
+    "chartType": "Grafik Türü",
+    "timeframe": "Zaman Aralığı"
+  },
   "common": {
     "add": "Ekle",
     "ok": "Tamam",

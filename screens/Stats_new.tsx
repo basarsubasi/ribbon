@@ -13,10 +13,9 @@ import {
 import { BarChart } from 'react-native-chart-kit';
 import { useTheme } from '../context/ThemeContext';
 import { useTranslation } from 'react-i18next';
-import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
+import { scale, verticalScale } from 'react-native-size-matters';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useFocusEffect } from '@react-navigation/native';
-import StatisticsIcon from '../components/StatisticsIcon';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -179,22 +178,13 @@ const Stats = () => {
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Header - Matching Home Style Exactly */}
+        {/* Header */}
         <Surface style={[styles.header, { backgroundColor: theme.colors.surface }]} elevation={1}>
           <View style={styles.headerContent}>
-            <View style={styles.logoContainer}>
-              <StatisticsIcon 
-                width={scale(40)} 
-                height={scale(40)} 
-                primaryColor={theme.colors.primary}
-                secondaryColor={theme.colors.primaryContainer}
-                accentColor={theme.colors.primary}
-              />
-              <Text variant="headlineLarge" style={[styles.appName, { color: theme.colors.primary }]}>
-                statistics
-              </Text>
-            </View>
-            <Text variant="bodyLarge" style={[styles.tagline, { color: theme.colors.onSurface }]}>
+            <Text variant="headlineLarge" style={[styles.title, { color: theme.colors.primary }]}>
+              {t('stats.title')}
+            </Text>
+            <Text variant="bodyLarge" style={[styles.subtitle, { color: theme.colors.onSurface }]}>
               {t('stats.subtitle')}
             </Text>
           </View>
@@ -281,65 +271,59 @@ const Stats = () => {
           </View>
         </View>
 
-        {/* Chart Section with Green Background Card */}
+        {/* Chart */}
         <View style={styles.section}>
-          {/* Green Background Card */}
-          <Card style={[styles.backgroundCard, { backgroundColor: theme.colors.primary }]} elevation={2}>
-            <Card.Content style={styles.backgroundCardContent}>
-              {/* White Chart Card */}
-              <Card style={[styles.chartCard, { backgroundColor: theme.colors.surface }]} elevation={4}>
-                <Card.Content>
-                  <View style={styles.chartHeader}>
-                    <Text variant="titleLarge" style={[styles.chartTitle, { color: theme.colors.onSurface }]}>
-                      Pages Read by {selectedChart.label}
-                    </Text>
-                    <Chip 
-                      style={[styles.timeframeChip, { backgroundColor: theme.colors.primaryContainer }]}
-                      textStyle={[styles.timeframeChipText, { color: theme.colors.onPrimaryContainer }]}
-                      compact
-                    >
-                      {selectedTimeframe.label}
-                    </Chip>
-                  </View>
-                  
-                  <View style={styles.chartContainer}>
-                    {renderChart()}
-                  </View>
-                  
-                  {/* Summary */}
-                  {!loading && chartData.length > 0 && (
-                    <View style={styles.summaryContainer}>
-                      <Divider style={[styles.divider, { backgroundColor: theme.colors.outline }]} />
-                      <View style={styles.summaryGrid}>
-                        <View style={styles.summaryItem}>
-                          <Text variant="titleMedium" style={[styles.summaryValue, { color: theme.colors.primary }]}>
-                            {chartData.length}
-                          </Text>
-                          <Text variant="bodySmall" style={[styles.summaryLabel, { color: theme.colors.onSurfaceVariant }]}>
-                            Items
-                          </Text>
-                        </View>
-                        <View style={styles.summaryItem}>
-                          <Text variant="titleMedium" style={[styles.summaryValue, { color: theme.colors.primary }]}>
-                            {chartData.reduce((sum, item) => sum + item.value, 0).toLocaleString()}
-                          </Text>
-                          <Text variant="bodySmall" style={[styles.summaryLabel, { color: theme.colors.onSurfaceVariant }]}>
-                            Total Pages
-                          </Text>
-                        </View>
-                        <View style={styles.summaryItem}>
-                          <Text variant="titleMedium" style={[styles.summaryValue, { color: theme.colors.primary }]}>
-                            {chartData.length > 0 ? Math.round(chartData.reduce((sum, item) => sum + item.value, 0) / chartData.length).toLocaleString() : '0'}
-                          </Text>
-                          <Text variant="bodySmall" style={[styles.summaryLabel, { color: theme.colors.onSurfaceVariant }]}>
-                            Average
-                          </Text>
-                        </View>
-                      </View>
+          <Card style={[styles.chartCard, { backgroundColor: theme.colors.surface }]} elevation={3}>
+            <Card.Content>
+              <View style={styles.chartHeader}>
+                <Text variant="titleLarge" style={[styles.chartTitle, { color: theme.colors.onSurface }]}>
+                  Pages Read by {selectedChart.label}
+                </Text>
+                <Chip 
+                  style={[styles.timeframeChip, { backgroundColor: theme.colors.primaryContainer }]}
+                  textStyle={[styles.timeframeChipText, { color: theme.colors.onPrimaryContainer }]}
+                  compact
+                >
+                  {selectedTimeframe.label}
+                </Chip>
+              </View>
+              
+              <View style={styles.chartContainer}>
+                {renderChart()}
+              </View>
+              
+              {/* Summary */}
+              {!loading && chartData.length > 0 && (
+                <View style={styles.summaryContainer}>
+                  <Divider style={[styles.divider, { backgroundColor: theme.colors.outline }]} />
+                  <View style={styles.summaryGrid}>
+                    <View style={styles.summaryItem}>
+                      <Text variant="titleMedium" style={[styles.summaryValue, { color: theme.colors.primary }]}>
+                        {chartData.length}
+                      </Text>
+                      <Text variant="bodySmall" style={[styles.summaryLabel, { color: theme.colors.onSurfaceVariant }]}>
+                        Items
+                      </Text>
                     </View>
-                  )}
-                </Card.Content>
-              </Card>
+                    <View style={styles.summaryItem}>
+                      <Text variant="titleMedium" style={[styles.summaryValue, { color: theme.colors.primary }]}>
+                        {chartData.reduce((sum, item) => sum + item.value, 0).toLocaleString()}
+                      </Text>
+                      <Text variant="bodySmall" style={[styles.summaryLabel, { color: theme.colors.onSurfaceVariant }]}>
+                        Total Pages
+                      </Text>
+                    </View>
+                    <View style={styles.summaryItem}>
+                      <Text variant="titleMedium" style={[styles.summaryValue, { color: theme.colors.primary }]}>
+                        {chartData.length > 0 ? Math.round(chartData.reduce((sum, item) => sum + item.value, 0) / chartData.length).toLocaleString() : '0'}
+                      </Text>
+                      <Text variant="bodySmall" style={[styles.summaryLabel, { color: theme.colors.onSurfaceVariant }]}>
+                        Average
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              )}
             </Card.Content>
           </Card>
         </View>
@@ -354,27 +338,21 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  // Header - Exactly matching Home.tsx
+  // Header - clean and simple like Home
   header: {
     paddingHorizontal: scale(20),
-    paddingVertical: verticalScale(24),
+    paddingVertical: verticalScale(20),
     marginBottom: verticalScale(8),
   },
   headerContent: {
     alignItems: 'center',
   },
-  logoContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: verticalScale(8),
+  title: {
+    fontWeight: '700',
+    marginBottom: verticalScale(4),
   },
-  appName: {
-    marginLeft: scale(12),
-    fontWeight: '300',
-    letterSpacing: moderateScale(2),
-  },
-  tagline: {
-    opacity: 0.7,
+  subtitle: {
+    opacity: 0.8,
   },
   // Section styling
   section: {
@@ -400,20 +378,11 @@ const styles = StyleSheet.create({
   menuButtonContent: {
     paddingVertical: verticalScale(8),
   },
-  // Green Background Card
-  backgroundCard: {
-    borderRadius: scale(20),
-    elevation: 2,
-    shadowOpacity: 0.1,
-  },
-  backgroundCardContent: {
-    padding: scale(12),
-  },
-  // Chart Card (white card inside green)
+  // Chart
   chartCard: {
     borderRadius: scale(16),
-    elevation: 4,
-    shadowOpacity: 0.15,
+    elevation: 3,
+    shadowOpacity: 0.1,
   },
   chartHeader: {
     flexDirection: 'row',
