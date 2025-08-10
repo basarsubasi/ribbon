@@ -14,6 +14,7 @@ import { PaperProvider } from 'react-native-paper';
 import { SettingsProvider } from './context/SettingsContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { FontAwesome, Ionicons } from '@expo/vector-icons';
+import Stats from './screens/Stats';
 
 // Initialize i18n
 import './utils/i18n';
@@ -165,6 +166,23 @@ function TabNavigator() {
           },
         })}
        />
+       <Tab.Screen
+       name="Stats"
+       component={Stats}
+       options={({ navigation }) => ({
+          tabBarShowLabel: false,
+          tabBarButton: (props) => {
+            const state = navigation.getState();
+            const currentRouteName = state.routes[state.index].name;
+            const isSelected = currentRouteName === "Stats";
+            return (
+              <TabButton {...props} isSelected={isSelected}>
+                <Ionicons name="stats-chart" size={24} color={theme.colors.onSurface} />
+              </TabButton>
+            );
+          },
+        })}
+         />
       <Tab.Screen
        name="Settings"
        component={Settings}
