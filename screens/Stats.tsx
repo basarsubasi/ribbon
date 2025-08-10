@@ -137,9 +137,9 @@ const Stats = () => {
     }
 
     const chartConfig = {
-      backgroundGradientFrom: theme.colors.surface,
-      backgroundGradientTo: theme.colors.surface,
-      color: (opacity = 1) => `rgba(${theme.colors.primary === '#6200ea' ? '98, 0, 234' : '33, 150, 243'}, ${opacity})`,
+      backgroundGradientFrom: "transparent",
+      backgroundGradientTo: "transparent",
+      color: (opacity = 1) => `rgba(${theme.colors.secondaryContainer}, ${opacity})`,
       strokeWidth: 2,
       barPercentage: 0.7,
       useShadowColorFromDataset: false,
@@ -178,7 +178,7 @@ const Stats = () => {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <View>
         {/* Header - Matching Home Style Exactly */}
         <Surface style={[styles.header, { backgroundColor: theme.colors.surface }]} elevation={1}>
           <View style={styles.headerContent}>
@@ -200,87 +200,6 @@ const Stats = () => {
           </View>
         </Surface>
 
-        {/* Controls */}
-        <View style={styles.section}>
-          <View style={styles.controlsRow}>
-            <View style={styles.controlItem}>
-              <Text variant="labelMedium" style={[styles.controlLabel, { color: theme.colors.onSurface }]}>
-                {t('stats.chartType')}
-              </Text>
-              <Menu
-                visible={chartMenuVisible}
-                onDismiss={() => setChartMenuVisible(false)}
-                anchor={
-                  <Button 
-                    mode="outlined" 
-                    onPress={() => setChartMenuVisible(true)}
-                    style={[styles.menuButton, { borderColor: theme.colors.outline }]}
-                    contentStyle={styles.menuButtonContent}
-                    labelStyle={{ color: theme.colors.onSurface }}
-                    icon="chevron-down"
-                  >
-                    {selectedChart.label}
-                  </Button>
-                }
-              >
-                {chartOptions.map((option) => (
-                  <Menu.Item
-                    key={option.key}
-                    onPress={() => {
-                      if (option.type === 'specific') {
-                        setSelectedChart(option);
-                        setChartMenuVisible(false);
-                      }
-                    }}
-                    title={option.label}
-                    titleStyle={{ 
-                      color: theme.colors.onSurface,
-                      fontWeight: option.type === 'general' ? '600' : '400',
-                      fontSize: scale(14),
-                      marginLeft: option.type === 'specific' ? scale(20) : 0
-                    }}
-                    style={option.type === 'general' ? { backgroundColor: theme.colors.surfaceVariant, opacity: 0.7 } : {}}
-                  />
-                ))}
-              </Menu>
-            </View>
-
-            <View style={styles.controlItem}>
-              <Text variant="labelMedium" style={[styles.controlLabel, { color: theme.colors.onSurface }]}>
-                {t('stats.timeframe')}
-              </Text>
-              <Menu
-                visible={timeframeMenuVisible}
-                onDismiss={() => setTimeframeMenuVisible(false)}
-                anchor={
-                  <Button 
-                    mode="outlined" 
-                    onPress={() => setTimeframeMenuVisible(true)}
-                    style={[styles.menuButton, { borderColor: theme.colors.outline }]}
-                    contentStyle={styles.menuButtonContent}
-                    labelStyle={{ color: theme.colors.onSurface }}
-                    icon="chevron-down"
-                  >
-                    {selectedTimeframe.label}
-                  </Button>
-                }
-              >
-                {timeframeOptions.map((option) => (
-                  <Menu.Item
-                    key={option.key}
-                    onPress={() => {
-                      setSelectedTimeframe(option);
-                      setTimeframeMenuVisible(false);
-                    }}
-                    title={option.label}
-                    titleStyle={{ color: theme.colors.onSurface, fontSize: scale(14) }}
-                  />
-                ))}
-              </Menu>
-            </View>
-          </View>
-        </View>
-
         {/* Chart Section with Green Background Card */}
         <View style={styles.section}>
           {/* Green Background Card */}
@@ -289,19 +208,6 @@ const Stats = () => {
               {/* White Chart Card */}
               <Card style={[styles.chartCard, { backgroundColor: theme.colors.surface }]} elevation={4}>
                 <Card.Content>
-                  <View style={styles.chartHeader}>
-                    <Text variant="titleLarge" style={[styles.chartTitle, { color: theme.colors.onSurface }]}>
-                      Pages Read by {selectedChart.label}
-                    </Text>
-                    <Chip 
-                      style={[styles.timeframeChip, { backgroundColor: theme.colors.primaryContainer }]}
-                      textStyle={[styles.timeframeChipText, { color: theme.colors.onPrimaryContainer }]}
-                      compact
-                    >
-                      {selectedTimeframe.label}
-                    </Chip>
-                  </View>
-                  
                   <View style={styles.chartContainer}>
                     {renderChart()}
                   </View>
@@ -344,8 +250,89 @@ const Stats = () => {
           </Card>
         </View>
 
+        {/* Controls - Moved to Bottom */}
+        <View style={styles.section}>
+          <View style={styles.controlsRow}>
+            <View style={styles.controlItem}>
+              <Text variant="labelMedium" style={[styles.controlLabel, { color: theme.colors.onSurface }]}>
+                {t('stats.chartType')}
+              </Text>
+              <Menu
+                visible={chartMenuVisible}
+                onDismiss={() => setChartMenuVisible(false)}
+                anchor={
+                  <Button 
+                    mode="contained" 
+                    onPress={() => setChartMenuVisible(true)}
+                    style={[styles.menuButton, { borderColor: theme.colors.outline, backgroundColor: theme.colors.primary }]}
+                    contentStyle={styles.menuButtonContent}
+                    labelStyle={{ color: theme.colors.surface }}
+                    icon="chevron-down"
+                  >
+                    {selectedChart.label}
+                  </Button>
+                }
+              >
+                {chartOptions.map((option) => (
+                  <Menu.Item
+                    key={option.key}
+                    onPress={() => {
+                      if (option.type === 'specific') {
+                        setSelectedChart(option);
+                        setChartMenuVisible(false);
+                      }
+                    }}
+                    title={option.label}
+                    titleStyle={{ 
+                      color: theme.colors.onSurface,
+                      fontWeight: option.type === 'general' ? '600' : '400',
+                      fontSize: scale(14),
+                      marginLeft: option.type === 'specific' ? scale(20) : 0
+                    }}
+                    style={option.type === 'general' ? { backgroundColor: theme.colors.surfaceVariant, opacity: 0.7 } : {}}
+                  />
+                ))}
+              </Menu>
+            </View>
+
+            <View style={styles.controlItem}>
+              <Text variant="labelMedium" style={[styles.controlLabel, { color: theme.colors.onSurface }]}>
+                {t('stats.timeframe')}
+              </Text>
+              <Menu
+                visible={timeframeMenuVisible}
+                onDismiss={() => setTimeframeMenuVisible(false)}
+                anchor={
+                  <Button 
+                    mode="contained" 
+                    onPress={() => setTimeframeMenuVisible(true)}
+                    style={[styles.menuButton, { borderColor: theme.colors.outline }]}
+                    contentStyle={styles.menuButtonContent}
+                    labelStyle={{ color: theme.colors.surface }}
+                    icon="chevron-down"
+                  >
+                    {selectedTimeframe.label}
+                  </Button>
+                }
+              >
+                {timeframeOptions.map((option) => (
+                  <Menu.Item
+                    key={option.key}
+                    onPress={() => {
+                      setSelectedTimeframe(option);
+                      setTimeframeMenuVisible(false);
+                    }}
+                    title={option.label}
+                    titleStyle={{ color: theme.colors.onSurface, fontSize: scale(14) }}
+                  />
+                ))}
+              </Menu>
+            </View>
+          </View>
+        </View>
+
         <View style={styles.bottomSpacing} />
-      </ScrollView>
+      </View>
     </View>
   );
 };
@@ -378,6 +365,7 @@ const styles = StyleSheet.create({
   },
   // Section styling
   section: {
+    marginTop: verticalScale(16),
     paddingHorizontal: scale(20),
     marginBottom: verticalScale(16),
   },
@@ -407,13 +395,15 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
   },
   backgroundCardContent: {
-    padding: scale(12),
+    padding: scale(16),
   },
-  // Chart Card (white card inside green)
+  // Chart Card (white card inside green) - scaled down
   chartCard: {
     borderRadius: scale(16),
     elevation: 4,
     shadowOpacity: 0.15,
+    marginHorizontal: scale(8),
+    marginVertical: scale(6),
   },
   chartHeader: {
     flexDirection: 'row',

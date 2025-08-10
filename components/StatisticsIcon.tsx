@@ -29,25 +29,7 @@ const StatisticsIcon: React.FC<StatisticsIconProps> = ({
         <Rect x={620} y={280} width={100} height={360} rx={16} fill={accentColor} stroke="#322E63" strokeWidth={18} />
         <Rect x={760} y={240} width={100} height={400} rx={16} fill={primaryColor} stroke="#322E63" strokeWidth={18} />
         
-        {/* Trend line/arrow indicator */}
-        <Path 
-          d="M180 550 L240 500 L380 420 L520 340 L660 300 L800 260" 
-          stroke="#322E63" 
-          strokeWidth={24} 
-          strokeLinecap="round" 
-          strokeLinejoin="round"
-          fill="none"
-        />
-        
-        {/* Arrow tip */}
-        <Path 
-          d="M780 240 L820 260 L780 280" 
-          stroke="#322E63" 
-          strokeWidth={24} 
-          strokeLinecap="round" 
-          strokeLinejoin="round"
-          fill="none"
-        />
+       
         
         {/* Data points on trend line */}
         <Circle cx={240} cy={500} r={12} fill="#322E63" />
@@ -62,8 +44,7 @@ const StatisticsIcon: React.FC<StatisticsIconProps> = ({
         {/* Y-axis */}
         <Path d="M160 160 L160 680" stroke="#322E63" strokeWidth={20} strokeLinecap="round" />
         
-        {/* Tablet/device frame for modern look */}
-        <Rect x={80} y={80} width={864} height={664} rx={68} fill="none" stroke="#322E63" strokeWidth={32} />
+       
         
         {/* Screen reflection highlight */}
         <Path 
@@ -72,8 +53,6 @@ const StatisticsIcon: React.FC<StatisticsIconProps> = ({
           opacity={0.1}
         />
         
-        {/* Home indicator (modern touch) */}
-        <Rect x={462} y={780} width={100} height={8} rx={4} fill="#322E63" opacity={0.3} />
       </G>
     </Svg>
   );
