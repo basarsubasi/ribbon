@@ -52,20 +52,9 @@ export default function ScanBarcode() {
       
       if (bookData) {
         // Navigate to book details or add book screen with the found data
-        Alert.alert(
-          t('scanner.bookFound'),
-          `${t('scanner.bookFound')} "${bookData.title}" ${t('search.byAuthor')} ${bookData.authors.join(', ')}`,
-          [
-            { 
-              text: t('scanner.addToLibrary'), 
-              onPress: () => {
-                // Navigate to AddBook screen with pre-filled data
-                navigation.navigate('AddBook', { bookData });
-              }
-            },
-            { text: t('scanner.scanAnother'), onPress: () => setScanned(false) }
-          ]
-        );
+      
+           navigation.navigate('AddBook', { bookData });
+              
       } else {
         Alert.alert(
           t('scanner.bookNotFound'),
