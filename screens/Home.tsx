@@ -23,7 +23,7 @@ import { useTranslation } from 'react-i18next';
 import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 import { useSQLiteContext } from 'expo-sqlite';
 import { getCoverImageUri } from '../utils/imageUtils';
-import { FontAwesome } from '@expo/vector-icons';
+import { FontAwesome, Ionicons } from '@expo/vector-icons';
 import { PageLogsStackParamList } from '../utils/types';
 
 
@@ -559,7 +559,9 @@ const Home = () => {
             style={[styles.goToStatsButton, { backgroundColor: theme.colors.primary }]}
             contentStyle={styles.goToStatsButtonContent}
             labelStyle={[styles.goToStatsText, { color: theme.colors.surface }]}
-            icon="chart-line"
+            icon={({ size, color }) => (
+              <Ionicons name="stats-chart" size={size} color={color} />
+            )}
           >
             Go to Stats
           </Button>

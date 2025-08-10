@@ -49,6 +49,7 @@ interface Book {
   isbn?: string;
   year_published?: number;
   date_added: string;
+  last_read?: string;
   current_page: number;
   review?: string;
   notes?: string;
@@ -57,6 +58,7 @@ interface Book {
   authors: string[];
   categories: string[];
   publishers: string[];
+  latest_log_id?: number;
 }
 
 interface FilterOptions {
@@ -68,7 +70,7 @@ interface FilterOptions {
 }
 
 interface SortOptions {
-  sortBy: 'title' | 'completion' | 'yearPublished' | 'dateAdded' | 'stars' | 'price';
+  sortBy: 'title' | 'completion' | 'yearPublished' | 'dateAdded' | 'stars' | 'price' | 'latestRead';
   sortOrder: 'asc' | 'desc';
 }
 
@@ -88,8 +90,8 @@ export default function ChooseBook() {
   const [sortMenuVisible, setSortMenuVisible] = useState(false);
   const [filterOptions, setFilterOptions] = useState<FilterOptions>({});
   const [sortOptions, setSortOptions] = useState<SortOptions>({ 
-    sortBy: 'title', 
-    sortOrder: 'asc' 
+    sortBy: 'latestRead', 
+    sortOrder: 'desc' 
   });
   
   const [availableAuthors, setAvailableAuthors] = useState<string[]>([]);
@@ -116,7 +118,8 @@ export default function ChooseBook() {
           b.*,
           GROUP_CONCAT(DISTINCT a.name) as authors,
           GROUP_CONCAT(DISTINCT c.name) as categories,
-          GROUP_CONCAT(DISTINCT p.name) as publishers
+          GROUP_CONCAT(DISTINCT p.name) as publishers,
+          MAX(pl.page_log_id) as latest_log_id
         FROM books b
         LEFT JOIN book_authors ba ON b.book_id = ba.book_id
         LEFT JOIN authors a ON ba.author_id = a.author_id
@@ -124,6 +127,7 @@ export default function ChooseBook() {
         LEFT JOIN categories c ON bc.category_id = c.category_id
         LEFT JOIN book_publishers bp ON b.book_id = bp.book_id
         LEFT JOIN publishers p ON bp.publisher_id = p.publisher_id
+        LEFT JOIN page_logs pl ON b.book_id = pl.book_id
         GROUP BY b.book_id
         ORDER BY b.title ASC
       `);
@@ -239,6 +243,19 @@ export default function ChooseBook() {
           const aPrice = a.price == null ? 0 : a.price;
           const bPrice = b.price == null ? 0 : b.price;
           comparison = aPrice - bPrice;
+          break;
+        case 'latestRead':
+          // Books with null last_read go to bottom (treat as very old date)
+          const aLastRead = a.last_read ? new Date(a.last_read).getTime() : -Infinity;
+          const bLastRead = b.last_read ? new Date(b.last_read).getTime() : -Infinity;
+          comparison = aLastRead - bLastRead;
+          
+          // If dates are the same, use latest_log_id as tiebreaker
+          if (comparison === 0) {
+            const aLogId = a.latest_log_id || 0;
+            const bLogId = b.latest_log_id || 0;
+            comparison = aLogId - bLogId;
+          }
           break;
       }
       
@@ -542,6 +559,21 @@ export default function ChooseBook() {
         </Button>
       }
     >
+      <Menu.Item
+        onPress={() => {
+          setSortOptions({ sortBy: 'latestRead', sortOrder: 'desc' });
+          setSortMenuVisible(false);
+        }}
+        title={t('library.latestReadFirst')}
+      />
+      <Menu.Item
+        onPress={() => {
+          setSortOptions({ sortBy: 'latestRead', sortOrder: 'asc' });
+          setSortMenuVisible(false);
+        }}
+        title={t('library.latestReadLast')}
+      />
+      <Divider />
       <Menu.Item
         onPress={() => {
           setSortOptions({ sortBy: 'title', sortOrder: 'asc' });

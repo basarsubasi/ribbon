@@ -65,6 +65,8 @@
     "completionDesc": "En Çok Tamamlanan",
     "newestFirst": "En Yeniler",
     "oldestFirst": "En Eskiler",
+    "latestReadFirst": "Son Okunanlar Önce",
+    "latestReadLast": "Son Okunanlar Sonda",
     "starsDesc": "En Çok Yıldızlı",
     "starsAsc": "En Az Yıldızlı",
   "priceAsc": "En Düşük Fiyat",

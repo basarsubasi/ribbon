@@ -65,6 +65,8 @@
     "completionDesc": "Most Complete First",
     "newestFirst": "Newest First",
     "oldestFirst": "Oldest First",
+    "latestReadFirst": "Latest Read First",
+    "latestReadLast": "Latest Read Last",
     "starsDesc": "Most Stars First",
     "starsAsc": "Least Stars First",
   "priceAsc": "Lowest Price",

@@ -53,6 +53,7 @@ interface Book {
   isbn?: string;
   year_published?: number;
   date_added: string;
+  last_read?: string;
   current_page: number;
   review?: string;
   notes?: string;
@@ -62,6 +63,7 @@ interface Book {
   categories: string[];
   publishers: string[];
   has_notes: number;
+  latest_log_id?: number;
 }
 
 interface FilterOptions {
@@ -73,7 +75,7 @@ interface FilterOptions {
 }
 
 interface SortOptions {
-  sortBy: 'title' | 'completion' | 'yearPublished' | 'dateAdded' | 'stars' | 'price';
+  sortBy: 'title' | 'completion' | 'yearPublished' | 'dateAdded' | 'stars' | 'price' | 'latestRead';
   sortOrder: 'asc' | 'desc';
 }
 
@@ -129,11 +131,12 @@ export default function Library() {
           GROUP_CONCAT(DISTINCT a.name) as authors,
           GROUP_CONCAT(DISTINCT c.name) as categories,
           GROUP_CONCAT(DISTINCT p.name) as publishers,
+          MAX(pl.page_log_id) as latest_log_id,
           CASE WHEN EXISTS(
-            SELECT 1 FROM page_logs pl 
-            WHERE pl.book_id = b.book_id 
-            AND pl.page_notes IS NOT NULL 
-            AND pl.page_notes != ''
+            SELECT 1 FROM page_logs pl2 
+            WHERE pl2.book_id = b.book_id 
+            AND pl2.page_notes IS NOT NULL 
+            AND pl2.page_notes != ''
           ) THEN 1 ELSE 0 END as has_notes
         FROM books b
         LEFT JOIN book_authors ba ON b.book_id = ba.book_id
@@ -142,6 +145,7 @@ export default function Library() {
         LEFT JOIN categories c ON bc.category_id = c.category_id
         LEFT JOIN book_publishers bp ON b.book_id = bp.book_id
         LEFT JOIN publishers p ON bp.publisher_id = p.publisher_id
+        LEFT JOIN page_logs pl ON b.book_id = pl.book_id
         GROUP BY b.book_id
         ORDER BY b.title ASC
       `);
@@ -257,6 +261,19 @@ export default function Library() {
           const aPrice = a.price == null ? 0 : a.price;
           const bPrice = b.price == null ? 0 : b.price;
           comparison = aPrice - bPrice;
+          break;
+        case 'latestRead':
+          // Books with null last_read go to bottom (treat as very old date)
+          const aLastRead = a.last_read ? new Date(a.last_read).getTime() : -Infinity;
+          const bLastRead = b.last_read ? new Date(b.last_read).getTime() : -Infinity;
+          comparison = aLastRead - bLastRead;
+          
+          // If dates are the same, use latest_log_id as tiebreaker
+          if (comparison === 0) {
+            const aLogId = a.latest_log_id || 0;
+            const bLogId = b.latest_log_id || 0;
+            comparison = aLogId - bLogId;
+          }
           break;
       }
       
@@ -614,6 +631,21 @@ export default function Library() {
         </Button>
       }
     >
+      <Menu.Item
+        onPress={() => {
+          setSortOptions({ sortBy: 'latestRead', sortOrder: 'desc' });
+          setSortMenuVisible(false);
+        }}
+        title={t('library.latestReadFirst')}
+      />
+      <Menu.Item
+        onPress={() => {
+          setSortOptions({ sortBy: 'latestRead', sortOrder: 'asc' });
+          setSortMenuVisible(false);
+        }}
+        title={t('library.latestReadLast')}
+      />
+      <Divider />
       <Menu.Item
         onPress={() => {
           setSortOptions({ sortBy: 'title', sortOrder: 'asc' });
