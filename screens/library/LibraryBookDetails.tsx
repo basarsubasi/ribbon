@@ -36,6 +36,7 @@ import {
   initializeImageDirectories 
 } from '../../utils/imageUtils';
 import * as FileSystem from 'expo-file-system';
+import Library from './Library';
 
 type LibraryBookDetailsRouteProp = RouteProp<LibraryStackParamList, 'LibraryBookDetails'>;
 type LibraryBookDetailsNavigationProp = StackNavigationProp<LibraryStackParamList, 'LibraryBookDetails'>;
@@ -73,6 +74,8 @@ interface LibraryBook {
   notes?: string;
   stars?: number;
   price?: number;
+  date_added: string;
+  last_read?: string;
   authors: string[];
   categories: string[];
   publishers: string[];
@@ -127,6 +130,7 @@ export default function LibraryBookDetails() {
   
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [bookData, setBookData] = useState<LibraryBook | null>(null);
 
   useEffect(() => {
     loadBookData();
@@ -177,6 +181,9 @@ export default function LibraryBookDetails() {
           categories: bookResult.categories ? bookResult.categories.split(',') : [],
           publishers: bookResult.publishers ? bookResult.publishers.split(',') : []
         };
+
+        // Store book data for display purposes
+        setBookData(book);
 
         // Populate form fields
         setBookType(book.book_type);
@@ -390,17 +397,12 @@ export default function LibraryBookDetails() {
         await db.runAsync('INSERT INTO book_publishers (book_id, publisher_id) VALUES (?, ?)', [bookId, publisherId]);
       }
 
-      Alert.alert(
-        t('addBook.success'),
-        'Book has been updated successfully!',
-        [{ text: t('common.ok'), onPress: () => navigation.goBack() }]
-      );
-
     } catch (error) {
       console.error('Error updating book:', error);
       Alert.alert(t('addBook.error'), 'Failed to update the book. Please try again.');
     } finally {
       setSaving(false);
+      navigation.navigate('Library');
     }
   };
 
@@ -430,12 +432,12 @@ export default function LibraryBookDetails() {
         console.warn('Could not re-fetch cover_path before delete', e);
       }
       await db.runAsync('DELETE FROM books WHERE book_id = ?', [bookId]);
-      Alert.alert('Deleted', 'Book has been deleted.', [ { text: 'OK', onPress: () => navigation.goBack() } ]);
     } catch (error) {
       console.error('Error deleting book:', error);
       Alert.alert('Error', 'Failed to delete the book. Please try again.');
     } finally {
       setSaving(false);
+      navigation.navigate('Library');
     }
   };
 
@@ -947,6 +949,23 @@ export default function LibraryBookDetails() {
           </Text>
           {renderStars()}
         </Surface>
+
+        {/* Book Dates Information */}
+        {(bookData?.date_added || bookData?.last_read) && (
+          <View style={styles.datesContainer}>
+            {bookData?.last_read && (
+              <Text variant="bodySmall" style={[styles.dateText, { color: theme.colors.onSurfaceVariant }]}>
+                {t('library.lastRead')} {new Date(bookData.last_read).toLocaleDateString()}
+              </Text>
+            )}
+            {bookData?.date_added && (
+              <Text variant="bodySmall" style={[styles.dateText, { color: theme.colors.onSurfaceVariant }]}>
+                {t('home.dateAdded')} {new Date(bookData.date_added).toLocaleDateString()}
+              </Text>
+            )}
+          </View>
+        )}
+
         {/* Action Buttons Row (non-sticky) */}
         <View style={styles.saveButtonContainer}>
           <View style={styles.actionButtonsRow}>
@@ -1016,4 +1035,16 @@ const styles = StyleSheet.create({
   loadingText: { marginTop: scale(16), fontSize: scale(16) },
   footer: {},
   deleteButton: {},
+  datesContainer: { 
+    flexDirection: 'column', 
+    alignItems: 'center',
+    paddingHorizontal: scale(16), 
+    paddingTop: scale(12),
+    paddingBottom: scale(25),
+    gap: scale(4)
+  },
+  dateText: { 
+    fontStyle: 'italic', 
+    fontSize: scale(12) 
+  },
 });

@@ -5,7 +5,8 @@ import {
   FlatList, 
   TouchableOpacity, 
   Image,
-  Dimensions 
+  Dimensions,
+  ScrollView 
 } from 'react-native';
 import { 
   Text, 
@@ -18,7 +19,10 @@ import {
   Searchbar,
   ActivityIndicator,
   Divider,
-  Surface
+  Surface,
+  Modal,
+  Portal,
+  IconButton
 } from 'react-native-paper';
 import { useTheme } from '../../context/ThemeContext';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -57,6 +61,7 @@ interface Book {
   authors: string[];
   categories: string[];
   publishers: string[];
+  has_notes: number;
 }
 
 interface FilterOptions {
@@ -98,6 +103,12 @@ export default function Library() {
   const [availablePublishers, setAvailablePublishers] = useState<string[]>([]);
   const [availableBookTypes, setAvailableBookTypes] = useState<string[]>([]);
 
+  // Note modal states
+  const [showNoteModal, setShowNoteModal] = useState(false);
+  const [currentNoteLog, setCurrentNoteLog] = useState<any>(null);
+  const [bookNotes, setBookNotes] = useState<any[]>([]);
+  const [currentNoteIndex, setCurrentNoteIndex] = useState(0);
+
   useFocusEffect(
     useCallback(() => {
       loadBooks();
@@ -117,7 +128,13 @@ export default function Library() {
           b.*,
           GROUP_CONCAT(DISTINCT a.name) as authors,
           GROUP_CONCAT(DISTINCT c.name) as categories,
-          GROUP_CONCAT(DISTINCT p.name) as publishers
+          GROUP_CONCAT(DISTINCT p.name) as publishers,
+          CASE WHEN EXISTS(
+            SELECT 1 FROM page_logs pl 
+            WHERE pl.book_id = b.book_id 
+            AND pl.page_notes IS NOT NULL 
+            AND pl.page_notes != ''
+          ) THEN 1 ELSE 0 END as has_notes
         FROM books b
         LEFT JOIN book_authors ba ON b.book_id = ba.book_id
         LEFT JOIN authors a ON ba.author_id = a.author_id
@@ -285,6 +302,36 @@ export default function Library() {
     });
   };
 
+  const handleViewNote = async (book: Book) => {
+    try {
+      // Get all notes for this book, ordered by date
+      const result = await db.getAllAsync<any>(`
+        SELECT 
+          pl.*, 
+          b.title,
+          b.number_of_pages
+        FROM page_logs pl
+        JOIN books b ON b.book_id = pl.book_id
+        WHERE pl.book_id = ? AND pl.page_notes IS NOT NULL AND pl.page_notes != ''
+        ORDER BY pl.read_date ASC, pl.page_log_id ASC
+      `, [book.book_id]);
+
+      const notes = result.map(r => ({
+        ...r,
+        // Add read_date for display
+        read_date: r.read_date
+      }));
+
+      setBookNotes(notes);
+      // Default to the most recent note
+      setCurrentNoteIndex(Math.max(0, notes.length - 1));
+      setCurrentNoteLog(book);
+      setShowNoteModal(true);
+    } catch (error) {
+      console.error('Error loading notes:', error);
+    }
+  };
+
   const renderBookItem = ({ item }: { item: Book }) => {
     const completion = calculateCompletion(item.current_page, item.number_of_pages);
     const completionText = getCompletionText(item.current_page, item.number_of_pages);
@@ -388,12 +435,24 @@ export default function Library() {
                   color={theme.colors.primary}
                   style={styles.progressBar}
                 />
-                <Text 
-                  variant="bodySmall" 
-                  style={[styles.progressText, { color: theme.colors.onSurfaceVariant }]}
-                >
-                  {completionText}
-                </Text>
+                <View style={styles.progressRow}>
+                  <Text 
+                    variant="bodySmall" 
+                    style={[styles.progressText, { color: theme.colors.onSurfaceVariant }]}
+                  >
+                    {completionText}
+                  </Text>
+                  {/* Note button - only show if book has notes */}
+                  {item.has_notes === 1 && (
+                    <IconButton
+                      icon="note-text"
+                      size={18}
+                      iconColor={theme.colors.primary}
+                      style={[styles.noteButton, { backgroundColor: theme.colors.primaryContainer }]}
+                      onPress={() => handleViewNote(item)}
+                    />
+                  )}
+                </View>
               </View>
             </View>
           </Card.Content>
@@ -786,6 +845,75 @@ export default function Library() {
         color="#FFFFFF"
         size="medium"
       />
+
+      {/* Note Modal */}
+      <Portal>
+        <Modal 
+          visible={showNoteModal} 
+          onDismiss={() => setShowNoteModal(false)}
+          contentContainerStyle={styles.modalContainer}
+        >
+          <Surface style={[styles.modalSurface, { backgroundColor: theme.colors.surface }]} elevation={3}>
+            {currentNoteLog && bookNotes.length > 0 && (
+              <>
+                <Text variant="headlineSmall" style={[styles.modalTitle, { color: theme.colors.onSurface }]}>
+                  {currentNoteLog.title}
+                </Text>
+                <Text variant="bodyMedium" style={[styles.modalSubtitle, { color: theme.colors.onSurfaceVariant }]}>
+                  {bookNotes[currentNoteIndex]?.read_date ? 
+                    new Date(bookNotes[currentNoteIndex].read_date).toLocaleDateString(undefined, { 
+                      weekday: 'long', 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    }) : 'Unknown Date'
+                  }
+                </Text>
+                
+                <ScrollView style={styles.noteContent} showsVerticalScrollIndicator={true}>
+                  <Text variant="bodyLarge" style={[styles.noteText, { color: theme.colors.onSurface }]}>
+                    {bookNotes[currentNoteIndex]?.page_notes || 'No note available'}
+                  </Text>
+                </ScrollView>
+                
+                {/* Navigation arrows - always show, but grey out when disabled */}
+                <View style={styles.noteNavigation}>
+                  <IconButton
+                    icon="chevron-left"
+                    size={24}
+                    iconColor={bookNotes.length > 1 && currentNoteIndex > 0 ? theme.colors.onSurface : theme.colors.outline}
+                    disabled={bookNotes.length <= 1 || currentNoteIndex === 0}
+                    onPress={() => setCurrentNoteIndex(prev => Math.max(0, prev - 1))}
+                    style={{ opacity: (bookNotes.length > 1 && currentNoteIndex > 0) ? 1 : 0.3 }}
+                  />
+                  
+                  <Text variant="bodyMedium" style={[styles.navigationText, { color: theme.colors.onSurface }]}>
+                    {bookNotes[currentNoteIndex]?.start_page} - {bookNotes[currentNoteIndex]?.end_page}
+                  </Text>
+                  
+                  <IconButton
+                    icon="chevron-right"
+                    size={24}
+                    iconColor={bookNotes.length > 1 && currentNoteIndex < bookNotes.length - 1 ? theme.colors.onSurface : theme.colors.outline}
+                    disabled={bookNotes.length <= 1 || currentNoteIndex === bookNotes.length - 1}
+                    onPress={() => setCurrentNoteIndex(prev => Math.min(bookNotes.length - 1, prev + 1))}
+                    style={{ opacity: (bookNotes.length > 1 && currentNoteIndex < bookNotes.length - 1) ? 1 : 0.3 }}
+                  />
+                </View>
+                
+                <Button 
+                  mode="outlined" 
+                  onPress={() => setShowNoteModal(false)}
+                  style={{ marginTop: verticalScale(16) }}
+                  labelStyle={{ color: theme.colors.onSurface }}
+                >
+                  Close
+                </Button>
+              </>
+            )}
+          </Surface>
+        </Modal>
+      </Portal>
     </View>
   );
 }
@@ -926,6 +1054,17 @@ const styles = StyleSheet.create({
     fontSize: scale(12),
     textAlign: 'right',
   },
+  progressRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: scale(4),
+  },
+  noteButton: {
+    marginLeft: scale(4),
+    width: scale(32),
+    height: scale(32),
+  },
   starsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -997,5 +1136,45 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     elevation: 8,
     shadowOpacity: 0.3,
+  },
+  // Modal styles
+  modalContainer: {
+    margin: scale(20),
+  },
+  modalSurface: {
+    borderRadius: scale(16),
+    padding: scale(20),
+  },
+  modalTitle: {
+    marginBottom: verticalScale(20),
+    textAlign: 'center',
+    fontWeight: '600',
+  },
+  modalSubtitle: {
+    textAlign: 'center',
+    marginBottom: verticalScale(16),
+    fontWeight: '500',
+  },
+  noteContent: {
+    backgroundColor: 'rgba(0,0,0,0.05)',
+    borderRadius: scale(8),
+    padding: scale(16),
+    marginVertical: verticalScale(16),
+    minHeight: scale(80),
+    maxHeight: verticalScale(300),
+  },
+  noteText: {
+    lineHeight: scale(22),
+  },
+  noteNavigation: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: verticalScale(12),
+  },
+  navigationText: {
+    fontWeight: '600',
+    textAlign: 'center',
+    flex: 1,
   },
 });

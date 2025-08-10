@@ -10,6 +10,8 @@ import {
   ProgressBar,
   Chip,
   IconButton,
+  Modal,
+  Portal,
 } from 'react-native-paper';
 import { useTheme } from '../context/ThemeContext';
 import BookIcon from '../components/BookIcon';
@@ -55,6 +57,7 @@ interface BookInProgress {
   year_published?: number;
   last_read?: string;
   latest_log_id: number;
+  has_notes: number;
 }
 
 interface ReadingStats {
@@ -82,6 +85,12 @@ const Home = () => {
   const [booksInProgress, setBooksInProgress] = useState<BookInProgress[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Note modal states
+  const [showNoteModal, setShowNoteModal] = useState(false);
+  const [currentNoteLog, setCurrentNoteLog] = useState<any>(null);
+  const [bookNotes, setBookNotes] = useState<any[]>([]);
+  const [currentNoteIndex, setCurrentNoteIndex] = useState(0);
+
   // Format date key for today and week calculations
   const formatDateKey = (date: Date) => {
     const y = date.getFullYear();
@@ -105,7 +114,13 @@ const Home = () => {
           b.last_read,
           GROUP_CONCAT(DISTINCT a.name) as authors,
           GROUP_CONCAT(DISTINCT c.name) as categories,
-          COALESCE(MAX(pl.page_log_id), 0) as latest_log_id
+          COALESCE(MAX(pl.page_log_id), 0) as latest_log_id,
+          CASE WHEN EXISTS(
+            SELECT 1 FROM page_logs pl2 
+            WHERE pl2.book_id = b.book_id 
+            AND pl2.page_notes IS NOT NULL 
+            AND pl2.page_notes != ''
+          ) THEN 1 ELSE 0 END as has_notes
         FROM books b
         LEFT JOIN book_authors ba ON b.book_id = ba.book_id
         LEFT JOIN authors a ON ba.author_id = a.author_id
@@ -118,7 +133,7 @@ const Home = () => {
           b.last_read DESC NULLS LAST,
           latest_log_id DESC,
           b.date_added DESC
-        LIMIT 3
+        LIMIT 10
       `);
 
       const processedBooks = books.map(book => ({
@@ -221,6 +236,37 @@ const Home = () => {
     }, [])
   );
 
+  const handleViewNote = async (book: BookInProgress) => {
+    try {
+      // Get all notes for this book, ordered by date
+      const result = await db.getAllAsync<any>(`
+        SELECT 
+          pl.*, 
+          b.title,
+          b.number_of_pages
+        FROM page_logs pl
+        JOIN books b ON b.book_id = pl.book_id
+        WHERE pl.book_id = ? AND pl.page_notes IS NOT NULL AND pl.page_notes != ''
+        ORDER BY pl.read_date ASC, pl.page_log_id ASC
+      `, [book.book_id]);
+
+      const notes = result.map(r => ({
+        ...r,
+        // Add read_date for display
+        read_date: r.read_date
+      }));
+
+      setBookNotes(notes);
+      // Find the latest note (from latest_log_id) or default to last one
+      const currentIndex = notes.findIndex(note => note.page_log_id === book.latest_log_id);
+      setCurrentNoteIndex(Math.max(0, currentIndex >= 0 ? currentIndex : notes.length - 1));
+      setCurrentNoteLog(book);
+      setShowNoteModal(true);
+    } catch (error) {
+      console.error('Error loading notes:', error);
+    }
+  };
+
   const renderBookCard = (book: BookInProgress) => {
     const completion = book.current_page / book.number_of_pages;
     const completionText = `${Math.round(completion * 100)}%`;
@@ -236,7 +282,6 @@ const Home = () => {
           });
         }}
         activeOpacity={0.7}
-        style={styles.bookCardContainer}
       >
         <Card style={[styles.bookCard, { backgroundColor: theme.colors.surface }]} elevation={2}>
           <Card.Content style={styles.bookContent}>
@@ -323,12 +368,24 @@ const Home = () => {
                   color={theme.colors.primary}
                   style={styles.progressBar}
                 />
-                <Text 
-                  variant="bodySmall" 
-                  style={[styles.progressText, { color: theme.colors.onSurfaceVariant }]}
-                >
-                  {completionText} • Page {book.current_page}/{book.number_of_pages}
-                </Text>
+                <View style={styles.progressRow}>
+                  <Text 
+                    variant="bodySmall" 
+                    style={[styles.progressText, { color: theme.colors.onSurfaceVariant }]}
+                  >
+                    {completionText} • Page {book.current_page}/{book.number_of_pages}
+                  </Text>
+                  {/* Note button - only show if book has notes */}
+                  {book.has_notes === 1 && (
+                    <IconButton
+                      icon="note-text"
+                      size={18}
+                      iconColor={theme.colors.primary}
+                      style={[styles.noteButton, { backgroundColor: theme.colors.primaryContainer }]}
+                      onPress={() => handleViewNote(book)}
+                    />
+                  )}
+                </View>
               </View>
             </View>
           </Card.Content>
@@ -393,62 +450,69 @@ const Home = () => {
 
         {/* Continue Reading Section */}
         <View style={styles.section}>
-          <Text variant="titleLarge" style={[styles.sectionTitle, { color: theme.colors.onBackground }]}>
-            {t('home.continueReading')}
-          </Text>
           
-          {booksInProgress.length > 0 ? (
-            <View style={styles.continueContainer}>
-              {booksInProgress.map(book => renderBookCard(book))}
-              
-              {/* See All Button */}
-              <Button
-                mode="contained"
-                onPress={() => navigation.navigate('LibraryStack')}
-                style={[styles.seeAllButton, { borderColor: theme.colors.outline }]}
-                contentStyle={styles.seeAllButtonContent}
-                labelStyle={[styles.seeAllText, { color: theme.colors.surface }]}
-              >
-                {t('home.seeAllBooks')}
-              </Button>
-            </View>
-          ) : (
-            <Card style={[styles.continueCard, { backgroundColor: theme.colors.primaryContainer }]} mode="contained">
-              <Card.Content>
-                <Text variant="titleMedium" style={{ color: theme.colors.onPrimaryContainer }}>
-                  {t('home.noBooksInProgress')}
-                </Text>
-                <Text variant="bodyMedium" style={{ color: theme.colors.onPrimaryContainer, opacity: 0.8, marginTop: verticalScale(4) }}>
-                  {t('home.startReadingPrompt')}
-                </Text>
-                <Button
-                  mode="contained"
-                  style={[styles.addBookButton, { backgroundColor: theme.colors.primary }]}
-                  onPress={() => navigation.navigate('LibraryStack')}
-                  contentStyle={{ paddingVertical: verticalScale(4) }}
-                  labelStyle={{ color: '#FFFFFF' }}
-                >
-                  {t('home.browseLibrary')}
-                </Button>
-              </Card.Content>
-            </Card>
-          )}
+          <Card 
+            style={[styles.continueReadingCard, { backgroundColor: theme.colors.primaryContainer }]} 
+            elevation={2}
+          >
+            <Card.Content style={styles.continueReadingContent}>
+              {booksInProgress.length > 0 ? (
+                <View style={styles.continueContainer}>
+                  <ScrollView 
+                    horizontal 
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.horizontalScrollContent}
+                    style={styles.horizontalScroll}
+                  >
+                    {booksInProgress.map((book, index) => (
+                      <View 
+                        key={book.book_id} 
+                        style={[
+                          styles.bookCardContainer,
+                          index === booksInProgress.length - 1 && { marginRight: 0 }
+                        ]}
+                      >
+                        {renderBookCard(book)}
+                      </View>
+                    ))}
+                  </ScrollView>
+                  
+                  {/* See All Button */}
+                  <Button
+                    mode="contained"
+                    onPress={() => navigation.navigate('LibraryStack')}
+                    style={[styles.seeAllButton, { backgroundColor: theme.colors.primary }]}
+                    contentStyle={styles.seeAllButtonContent}
+                    labelStyle={[styles.seeAllText, { color: theme.colors.surface }]}
+                  >
+                    {t('home.seeAllBooks')}
+                  </Button>
+                </View>
+              ) : (
+                <View style={styles.emptyStateContainer}>
+                  <Text variant="titleMedium" style={{ color: theme.colors.onPrimaryContainer }}>
+                    {t('home.noBooksInProgress')}
+                  </Text>
+                  <Text variant="bodyMedium" style={{ color: theme.colors.onPrimaryContainer, opacity: 0.8, marginTop: verticalScale(4) }}>
+                    {t('home.startReadingPrompt')}
+                  </Text>
+                  <Button
+                    mode="contained"
+                    style={[styles.addBookButton, { backgroundColor: theme.colors.primary }]}
+                    onPress={() => navigation.navigate('LibraryStack')}
+                    contentStyle={{ paddingVertical: verticalScale(4) }}
+                    labelStyle={{ color: '#FFFFFF' }}
+                  >
+                    {t('home.browseLibrary')}
+                  </Button>
+                </View>
+              )}
+            </Card.Content>
+          </Card>
         </View>
 
         {/* Stats Grid */}
         <View style={styles.section}>
-          <View style={styles.statsHeader}>
-            <Text variant="titleLarge" style={[styles.sectionTitle, { color: theme.colors.onBackground }]}>
-              {t('home.readingStats')}
-            </Text>
-            <IconButton
-              icon="chart-line"
-              size={24}
-              iconColor={theme.colors.primary}
-              style={styles.statsButton}
-              onPress={() => navigation.navigate('Stats')}
-            />
-          </View>
           <View style={styles.statsGrid}>
             <StatCard title={t('home.totalBooks')} value={stats.totalBooks} />
             <StatCard title={t('home.currentlyReading')} value={stats.currentlyReading} />
@@ -463,16 +527,99 @@ const Home = () => {
               value={stats.pagesReadThisWeek} 
               subtitle={t('home.pagesRead')}
             />
+            
+            {/* Reading Streak card */}
             <StatCard 
               title={t('home.readingStreak')} 
               value={`${stats.readingStreak} ${t('home.days')}`} 
               subtitle={stats.readingStreak > 0 ? t('home.keepItUp') : t('home.startStreak')}
             />
           </View>
+          
+          {/* Go to Stats Button */}
+          <Button
+            mode="contained"
+            onPress={() => navigation.navigate('Stats')}
+            style={[styles.goToStatsButton, { backgroundColor: theme.colors.primary }]}
+            contentStyle={styles.goToStatsButtonContent}
+            labelStyle={[styles.goToStatsText, { color: theme.colors.surface }]}
+            icon="chart-line"
+          >
+            Go to Stats
+          </Button>
         </View>
 
         <View style={styles.bottomSpacing} />
       </ScrollView>
+
+      {/* Note Modal */}
+      <Portal>
+        <Modal 
+          visible={showNoteModal} 
+          onDismiss={() => setShowNoteModal(false)}
+          contentContainerStyle={styles.modalContainer}
+        >
+          <Surface style={[styles.modalSurface, { backgroundColor: theme.colors.surface }]} elevation={3}>
+            {currentNoteLog && bookNotes.length > 0 && (
+              <>
+                <Text variant="headlineSmall" style={[styles.modalTitle, { color: theme.colors.onSurface }]}>
+                  {currentNoteLog.title}
+                </Text>
+                <Text variant="bodyMedium" style={[styles.modalSubtitle, { color: theme.colors.onSurfaceVariant }]}>
+                  {bookNotes[currentNoteIndex]?.read_date ? 
+                    new Date(bookNotes[currentNoteIndex].read_date).toLocaleDateString(undefined, { 
+                      weekday: 'long', 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    }) : 'Unknown Date'
+                  }
+                </Text>
+                
+                <ScrollView style={styles.noteContent} showsVerticalScrollIndicator={true}>
+                  <Text variant="bodyLarge" style={[styles.noteText, { color: theme.colors.onSurface }]}>
+                    {bookNotes[currentNoteIndex]?.page_notes || 'No note available'}
+                  </Text>
+                </ScrollView>
+                
+                {/* Navigation arrows - always show, but grey out when disabled */}
+                <View style={styles.noteNavigation}>
+                  <IconButton
+                    icon="chevron-left"
+                    size={24}
+                    iconColor={bookNotes.length > 1 && currentNoteIndex > 0 ? theme.colors.onSurface : theme.colors.outline}
+                    disabled={bookNotes.length <= 1 || currentNoteIndex === 0}
+                    onPress={() => setCurrentNoteIndex(prev => Math.max(0, prev - 1))}
+                    style={{ opacity: (bookNotes.length > 1 && currentNoteIndex > 0) ? 1 : 0.3 }}
+                  />
+                  
+                  <Text variant="bodyMedium" style={[styles.navigationText, { color: theme.colors.onSurface }]}>
+                    {bookNotes[currentNoteIndex]?.start_page} - {bookNotes[currentNoteIndex]?.end_page}
+                  </Text>
+                  
+                  <IconButton
+                    icon="chevron-right"
+                    size={24}
+                    iconColor={bookNotes.length > 1 && currentNoteIndex < bookNotes.length - 1 ? theme.colors.onSurface : theme.colors.outline}
+                    disabled={bookNotes.length <= 1 || currentNoteIndex === bookNotes.length - 1}
+                    onPress={() => setCurrentNoteIndex(prev => Math.min(bookNotes.length - 1, prev + 1))}
+                    style={{ opacity: (bookNotes.length > 1 && currentNoteIndex < bookNotes.length - 1) ? 1 : 0.3 }}
+                  />
+                </View>
+                
+                <Button 
+                  mode="outlined" 
+                  onPress={() => setShowNoteModal(false)}
+                  style={{ marginTop: verticalScale(16) }}
+                  labelStyle={{ color: theme.colors.onSurface }}
+                >
+                  Close
+                </Button>
+              </>
+            )}
+          </Surface>
+        </Modal>
+      </Portal>
     </View>
   );
 };
@@ -522,22 +669,26 @@ const styles = StyleSheet.create({
   statCard: {
     width: (width - scale(52)) / 2,
     marginBottom: verticalScale(12),
+    borderRadius: scale(16),
+    elevation: 2,
+    shadowOpacity: 0.05,
   },
   statContent: {
     alignItems: 'center',
-    paddingVertical: verticalScale(16),
+    paddingVertical: verticalScale(18),
+    paddingHorizontal: verticalScale(12),
   },
   progressBar: {
-    marginTop: verticalScale(8),
-    height: verticalScale(4),
-    borderRadius: scale(2),
+    marginTop: verticalScale(10),
+    height: verticalScale(6),
+    borderRadius: scale(3),
   },
   continueCard: {
     padding: scale(8),
   },
   addBookButton: {
     marginTop: verticalScale(16),
-    alignSelf: 'flex-start',
+    alignSelf: 'center',
   },
   bottomSpacing: {
     height: verticalScale(60),
@@ -547,27 +698,32 @@ const styles = StyleSheet.create({
     gap: verticalScale(12),
   },
   bookCardContainer: {
-    marginBottom: verticalScale(8),
+    marginRight: scale(12),
+    width: scale(280),
   },
   bookCard: {
-    borderRadius: scale(12),
+    borderRadius: scale(16),
+    elevation: 3,
+    shadowOpacity: 0.1,
   },
   bookContent: {
     flexDirection: 'row',
-    padding: scale(12),
+    padding: scale(16),
   },
   coverContainer: {
-    marginRight: scale(12),
+    marginRight: scale(16),
+    elevation: 2,
+    shadowOpacity: 0.1,
   },
   coverImage: {
-    width: scale(50),
-    height: scale(75),
-    borderRadius: scale(6),
+    width: scale(55),
+    height: scale(82),
+    borderRadius: scale(8),
   },
   coverPlaceholder: {
-    width: scale(50),
-    height: scale(75),
-    borderRadius: scale(6),
+    width: scale(55),
+    height: scale(82),
+    borderRadius: scale(8),
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -623,12 +779,26 @@ const styles = StyleSheet.create({
     marginTop: verticalScale(4),
     fontWeight: '500',
   },
+  progressRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: verticalScale(4),
+  },
+  noteButton: {
+    marginLeft: scale(4),
+    width: scale(32),
+    height: scale(32),
+  },
   seeAllButton: {
-    marginTop: verticalScale(16),
-    borderRadius: scale(8),
+    marginTop: verticalScale(20),
+    borderRadius: scale(12),
+    elevation: 1,
+    shadowOpacity: 0.1,
   },
   seeAllButtonContent: {
-    paddingVertical: verticalScale(8),
+    paddingVertical: verticalScale(12),
+    paddingHorizontal: scale(24),
   },
   seeAllText: {
     fontWeight: '600',
@@ -641,6 +811,82 @@ const styles = StyleSheet.create({
   },
   statsButton: {
     margin: 0,
+  },
+  // Continue Reading Card Styles
+  continueReadingCard: {
+    borderRadius: scale(16),
+    marginTop: verticalScale(8),
+  },
+  continueReadingContent: {
+    padding: scale(4),
+  },
+  emptyStateContainer: {
+    alignItems: 'center',
+    paddingVertical: verticalScale(16),
+  },
+  // Go to Stats Button
+  goToStatsButton: {
+    marginTop: verticalScale(16),
+    borderRadius: scale(25),
+    elevation: 2,
+    shadowOpacity: 0.1,
+    alignSelf: 'center',
+  },
+  goToStatsButtonContent: {
+    paddingVertical: verticalScale(10),
+    paddingHorizontal: scale(20),
+  },
+  goToStatsText: {
+    fontWeight: '600',
+    fontSize: scale(14),
+  },
+  // Horizontal scroll styles
+  horizontalScroll: {
+    marginBottom: verticalScale(8),
+  },
+  horizontalScrollContent: {
+    paddingHorizontal: scale(4),
+    paddingRight: scale(20),
+  },
+  // Modal styles
+  modalContainer: {
+    margin: scale(20),
+  },
+  modalSurface: {
+    borderRadius: scale(16),
+    padding: scale(20),
+  },
+  modalTitle: {
+    marginBottom: verticalScale(20),
+    textAlign: 'center',
+    fontWeight: '600',
+  },
+  modalSubtitle: {
+    textAlign: 'center',
+    marginBottom: verticalScale(16),
+    fontWeight: '500',
+  },
+  noteContent: {
+    backgroundColor: 'rgba(0,0,0,0.05)',
+    borderRadius: scale(8),
+    padding: scale(16),
+    marginVertical: verticalScale(16),
+    minHeight: scale(80),
+    maxHeight: verticalScale(300),
+  },
+  noteText: {
+    lineHeight: scale(22),
+  },
+  noteNavigation: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: verticalScale(12),
+  },
+  navigationText: {
+    fontWeight: '600',
+    textAlign: 'center',
+    flex: 1,
   },
 });
 

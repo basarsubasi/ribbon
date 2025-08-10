@@ -232,17 +232,13 @@ export default function LogDetails() {
             setDeleting(true);
             try {
               await db.runAsync('DELETE FROM page_logs WHERE page_log_id = ?', [logId]);
-              
-              Alert.alert(
-                'Deleted',
-                'Reading log has been deleted successfully',
-                [{ text: 'OK', onPress: () => navigation.goBack() }]
-              );
             } catch (error) {
               console.error('Error deleting log:', error);
               Alert.alert('Error', 'Failed to delete reading log');
             } finally {
               setDeleting(false);
+              navigation.goBack();
+
             }
           }
         }
