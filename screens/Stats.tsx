@@ -17,7 +17,6 @@ import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useFocusEffect } from '@react-navigation/native';
 import StatisticsIcon from '../components/StatisticsIcon';
-import { BorderlessButton } from 'react-native-gesture-handler';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -135,6 +134,18 @@ const Stats = () => {
     { key: 'all', label: 'All Time', filter: '' }
   ];
 
+  // Function to get shorter button labels for timeframes
+  const getTimeframeButtonLabel = (label: string): string => {
+    const shortLabels: { [key: string]: string } = {
+      'Today': 'Today',
+      'This Week': 'This Week',
+      'This Month': 'This Month',
+      'This Year': 'This Year',
+      'All Time': 'All Time'
+    };
+    return shortLabels[label] || label;
+  };
+
   const [selectedChart, setSelectedChart] = useState<ChartOption>(chartOptions[1]);
   const [selectedTimeframe, setSelectedTimeframe] = useState<TimeframeOption>(timeframeOptions[2]);
 
@@ -228,7 +239,12 @@ const Stats = () => {
   const wrapButtonText = (text: string, maxLength: number = 12): string => {
     if (text.length <= maxLength) return text;
     
-    const words = text.split(' ');
+    const words = text.split(' ').filter(word => word.length > 0);
+    if (words.length <= 1) {
+      // Single word - truncate intelligently
+      return text.length > maxLength ? text.substring(0, maxLength - 3) + '...' : text;
+    }
+    
     const lines: string[] = [];
     let currentLine = '';
     
@@ -240,17 +256,23 @@ const Stats = () => {
       } else {
         if (currentLine) {
           lines.push(currentLine);
-          currentLine = word.length <= maxLength ? word : word.substring(0, maxLength);
+          currentLine = word.length <= maxLength ? word : word.substring(0, maxLength - 3) + '...';
         } else {
           // Single word is too long, break it
-          lines.push(word.substring(0, maxLength));
-          currentLine = word.length > maxLength ? word.substring(maxLength) : '';
+          lines.push(word.substring(0, maxLength - 3) + '...');
+          currentLine = '';
         }
       }
     }
     
     if (currentLine) {
       lines.push(currentLine);
+    }
+    
+    // For buttons, prefer single line with ellipsis over multi-line
+    if (lines.length > 1 && lines.join('\n').length > maxLength * 1.5) {
+      const fullText = lines.join(' ');
+      return fullText.length > maxLength ? fullText.substring(0, maxLength - 3) + '...' : fullText;
     }
     
     return lines.slice(0, 2).join('\n'); // Max 2 lines for buttons
@@ -281,13 +303,10 @@ const Stats = () => {
       backgroundGradientTo: theme.colors.surface,
       color: (opacity = 1) => theme.colors.onSurface,
       strokeWidth: 2,
-      barPercentage: 0.7,
+      barPercentage: 0.6,
       useShadowColorFromDataset: false,
       decimalPlaces: 0,
-      propsForLabels: {
-        fontSize: scale(10),
-        fill: theme.colors.onSurface,
-      },
+
       fillShadowGradientFrom: theme.colors.primary,
       fillShadowGradientTo: theme.colors.primary,
       fillShadowGradientFromOpacity: 1,
@@ -296,9 +315,40 @@ const Stats = () => {
 
     const data = {
       labels: chartData.map(item => {
-        const wrappedLines = wrapText(item.name, 10);
-        // Ensure proper spacing by explicitly joining with newlines
-        return wrappedLines.length > 1 ? wrappedLines.join('\n') : item.name;
+        // Smart truncation that preserves meaningful words and spaces
+        if (item.name.length <= 14) {
+          return item.name;
+        }
+        
+        const words = item.name.split(' ').filter(word => word.length > 0);
+        if (words.length === 1) {
+          // Single long word - truncate but keep it readable
+          return words[0].length > 12 ? words[0].substring(0, 12) + '...' : words[0];
+        }
+        
+        // Multiple words - try to fit meaningful parts
+        let result = '';
+        let totalLength = 0;
+        
+        for (let i = 0; i < words.length; i++) {
+          const word = words[i];
+          const nextLength = totalLength + (result ? 1 : 0) + word.length; // +1 for space
+          
+          if (nextLength <= 14) {
+            result += (result ? ' ' : '') + word;
+            totalLength = nextLength;
+          } else {
+            // If we can't fit the whole word, try to fit part of it
+            if (result === '' && word.length > 14) {
+              result = word.substring(0, 11) + '...';
+            } else if (result !== '') {
+              result += '...';
+            }
+            break;
+          }
+        }
+        
+        return result || item.name.substring(0, 11) + '...';
       }),
       datasets: [{
         data: chartData.map(item => item.value),
@@ -309,8 +359,8 @@ const Stats = () => {
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chartScrollView}>
         <BarChart
           data={data}
-          width={Math.max(screenWidth - scale(80), chartData.length * scale(80))}
-          height={verticalScale(280)}
+          width={Math.max(screenWidth - scale(60), chartData.length * scale(90))}
+          height={verticalScale(320)}
           chartConfig={chartConfig}
           style={styles.chart}
           yAxisLabel=""
@@ -514,12 +564,12 @@ const Stats = () => {
                   <Button 
                     mode="contained" 
                     onPress={() => setTimeframeMenuVisible(true)}
-                    style={[styles.menuButton, { borderColor: theme.colors.outline }]}
+                    style={[styles.menuButton, { borderColor: theme.colors.outline, backgroundColor: theme.colors.primary }]}
                     contentStyle={styles.menuButtonContent}
                     labelStyle={{ color: theme.colors.surface }}
                     icon="chevron-down"
                   >
-                    {wrapButtonText(selectedTimeframe.label)}
+                    {getTimeframeButtonLabel(selectedTimeframe.label)}
                   </Button>
                 }
               >
@@ -579,10 +629,13 @@ const styles = StyleSheet.create({
   // Controls
   controlsRow: {
     flexDirection: 'row',
-    gap: scale(16),
+    gap: scale(12),
+    flexWrap: 'wrap',
+    alignItems: 'flex-start',
   },
   controlItem: {
     flex: 1,
+    minWidth: scale(100),
   },
   controlLabel: {
     marginBottom: verticalScale(8),
