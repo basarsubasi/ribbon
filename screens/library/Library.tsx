@@ -614,6 +614,32 @@ export default function Library() {
     </Menu>
   );
 
+  const handleSortToggle = (sortBy: SortOptions['sortBy']) => {
+    setSortOptions(prev => {
+      // If clicking the same sort option, toggle between desc and asc
+      if (prev.sortBy === sortBy) {
+        return {
+          sortBy,
+          sortOrder: prev.sortOrder === 'desc' ? 'asc' : 'desc'
+        };
+      }
+      // If clicking a different sort option, start with desc
+      return {
+        sortBy,
+        sortOrder: 'desc'
+      };
+    });
+    setSortMenuVisible(false);
+  };
+
+  const getSortMenuTitle = (sortBy: SortOptions['sortBy'], baseTitle: string) => {
+    const isActive = sortOptions.sortBy === sortBy;
+    const icon = isActive 
+      ? (sortOptions.sortOrder === 'desc' ? ' ↓' : ' ↑')
+      : ' ↓';
+    return baseTitle + icon;
+  };
+
   const renderSortMenu = () => (
     <Menu
       visible={sortMenuVisible}
@@ -632,90 +658,34 @@ export default function Library() {
       }
     >
       <Menu.Item
-        onPress={() => {
-          setSortOptions({ sortBy: 'latestRead', sortOrder: 'desc' });
-          setSortMenuVisible(false);
-        }}
-        title={t('library.latestReadFirst')}
+        onPress={() => handleSortToggle('latestRead')}
+        title={getSortMenuTitle('latestRead', t('library.lastRead') || 'Last Read')}
+        titleStyle={sortOptions.sortBy === 'latestRead' ? { fontWeight: 'bold' } : {}}
       />
       <Menu.Item
-        onPress={() => {
-          setSortOptions({ sortBy: 'latestRead', sortOrder: 'asc' });
-          setSortMenuVisible(false);
-        }}
-        title={t('library.latestReadLast')}
-      />
-      <Divider />
-      <Menu.Item
-        onPress={() => {
-          setSortOptions({ sortBy: 'title', sortOrder: 'asc' });
-          setSortMenuVisible(false);
-        }}
-        title={t('library.titleAsc')}
+        onPress={() => handleSortToggle('title')}
+        title={getSortMenuTitle('title', t('library.title') || 'Title')}
+        titleStyle={sortOptions.sortBy === 'title' ? { fontWeight: 'bold' } : {}}
       />
       <Menu.Item
-        onPress={() => {
-          setSortOptions({ sortBy: 'title', sortOrder: 'desc' });
-          setSortMenuVisible(false);
-        }}
-        title={t('library.titleDesc')}
+        onPress={() => handleSortToggle('completion')}
+        title={getSortMenuTitle('completion', t('library.progress') || 'Progress')}
+        titleStyle={sortOptions.sortBy === 'completion' ? { fontWeight: 'bold' } : {}}
       />
       <Menu.Item
-        onPress={() => {
-          setSortOptions({ sortBy: 'completion', sortOrder: 'desc' });
-          setSortMenuVisible(false);
-        }}
-        title={t('library.completionDesc')}
+        onPress={() => handleSortToggle('dateAdded')}
+        title={getSortMenuTitle('dateAdded', t('library.dateAdded') || 'Date Added')}
+        titleStyle={sortOptions.sortBy === 'dateAdded' ? { fontWeight: 'bold' } : {}}
       />
       <Menu.Item
-        onPress={() => {
-          setSortOptions({ sortBy: 'completion', sortOrder: 'asc' });
-          setSortMenuVisible(false);
-        }}
-        title={t('library.completionAsc')}
+        onPress={() => handleSortToggle('stars')}
+        title={getSortMenuTitle('stars', t('library.rating') || 'Rating')}
+        titleStyle={sortOptions.sortBy === 'stars' ? { fontWeight: 'bold' } : {}}
       />
       <Menu.Item
-        onPress={() => {
-          setSortOptions({ sortBy: 'dateAdded', sortOrder: 'desc' });
-          setSortMenuVisible(false);
-        }}
-        title={t('library.newestFirst')}
-      />
-      <Menu.Item
-        onPress={() => {
-          setSortOptions({ sortBy: 'dateAdded', sortOrder: 'asc' });
-          setSortMenuVisible(false);
-        }}
-        title={t('library.oldestFirst')}
-      />
-      <Menu.Item
-        onPress={() => {
-          setSortOptions({ sortBy: 'stars', sortOrder: 'desc' });
-          setSortMenuVisible(false);
-        }}
-        title={t('library.starsDesc')}
-      />
-      <Menu.Item
-        onPress={() => {
-          setSortOptions({ sortBy: 'stars', sortOrder: 'asc' });
-          setSortMenuVisible(false);
-        }}
-        title={t('library.starsAsc')}
-      />
-      <Divider />
-      <Menu.Item
-        onPress={() => {
-          setSortOptions({ sortBy: 'price', sortOrder: 'asc' });
-          setSortMenuVisible(false);
-        }}
-        title={t('library.priceAsc')}
-      />
-      <Menu.Item
-        onPress={() => {
-          setSortOptions({ sortBy: 'price', sortOrder: 'desc' });
-          setSortMenuVisible(false);
-        }}
-        title={t('library.priceDesc')}
+        onPress={() => handleSortToggle('price')}
+        title={getSortMenuTitle('price', t('library.price') || 'Price')}
+        titleStyle={sortOptions.sortBy === 'price' ? { fontWeight: 'bold' } : {}}
       />
     </Menu>
   );
