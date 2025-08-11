@@ -285,12 +285,12 @@ const AppContent = () => {
       <View style={{ flex: 1, paddingTop: insets.top, backgroundColor: theme.colors.background }}>
         <GestureHandlerRootView style={{ flex: 1 }}>
           <SQLiteProvider databaseName="RibbonDB.db" useSuspense>
-
+            <DatabaseInitializer>
               <NavigationContainer>
                 <ThemeAwareStatusBar />
                 <TabNavigator />
               </NavigationContainer>
-
+            </DatabaseInitializer>
           </SQLiteProvider>
         </GestureHandlerRootView>
       </View>
