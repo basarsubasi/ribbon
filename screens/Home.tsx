@@ -211,7 +211,7 @@ const Home = () => {
         }
         
         // Prevent infinite loop
-        if (streak > 365) break;
+        if (streak > 9999) break;
       }
 
       // Get finished books count (books where current_page = number_of_pages)
