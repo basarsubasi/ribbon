@@ -17,6 +17,7 @@ import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useFocusEffect } from '@react-navigation/native';
 import StatisticsIcon from '../components/StatisticsIcon';
+import { BorderlessButton } from 'react-native-gesture-handler';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -28,9 +29,11 @@ interface ChartData {
 interface ChartOption {
   key: string;
   label: string;
-  type: 'general' | 'specific';
+  type: 'general' | 'specific' | 'detailed';
   query: string;
   column: string;
+  detailQuery?: string;
+  detailColumn?: string;
 }
 
 interface TimeframeOption {
@@ -48,6 +51,9 @@ const Stats = () => {
   const [loading, setLoading] = useState(true);
   const [chartMenuVisible, setChartMenuVisible] = useState(false);
   const [timeframeMenuVisible, setTimeframeMenuVisible] = useState(false);
+  const [itemMenuVisible, setItemMenuVisible] = useState(false);
+  const [availableItems, setAvailableItems] = useState<{name: string, id: string}[]>([]);
+  const [selectedItem, setSelectedItem] = useState<{name: string, id: string} | null>(null);
 
   const chartOptions: ChartOption[] = [
     { key: 'authors-header', label: 'Authors', type: 'general', query: '', column: '' },
@@ -59,6 +65,19 @@ const Stats = () => {
                LEFT JOIN page_logs pl ON b.book_id = pl.book_id
                WHERE 1=1`, 
       column: 'a.name' },
+    { key: 'specific-author', label: 'Select Author', type: 'detailed',
+      query: `SELECT a.name, a.author_id as id FROM authors a 
+               JOIN book_authors ba ON a.author_id = ba.author_id
+               JOIN books b ON ba.book_id = b.book_id
+               JOIN page_logs pl ON b.book_id = pl.book_id
+               WHERE 1=1`,
+      column: 'a.name',
+      detailQuery: `SELECT b.title as name, COALESCE(SUM(pl.total_page_read), 0) as pages_read
+                    FROM books b
+                    JOIN book_authors ba ON b.book_id = ba.book_id
+                    LEFT JOIN page_logs pl ON b.book_id = pl.book_id
+                    WHERE ba.author_id = ?`,
+      detailColumn: 'b.title' },
     
     { key: 'categories-header', label: 'Categories', type: 'general', query: '', column: '' },
     { key: 'categories', label: 'All Categories', type: 'specific',
@@ -69,14 +88,43 @@ const Stats = () => {
                LEFT JOIN page_logs pl ON b.book_id = pl.book_id
                WHERE 1=1`, 
       column: 'c.name' },
+    { key: 'specific-category', label: 'Select Category', type: 'detailed',
+      query: `SELECT c.name, c.category_id as id FROM categories c 
+               JOIN book_categories bc ON c.category_id = bc.category_id
+               JOIN books b ON bc.book_id = b.book_id
+               JOIN page_logs pl ON b.book_id = pl.book_id
+               WHERE 1=1`,
+      column: 'c.name',
+      detailQuery: `SELECT b.title as name, COALESCE(SUM(pl.total_page_read), 0) as pages_read
+                    FROM books b
+                    JOIN book_categories bc ON b.book_id = bc.book_id
+                    LEFT JOIN page_logs pl ON b.book_id = pl.book_id
+                    WHERE bc.category_id = ?`,
+      detailColumn: 'b.title' },
 
     { key: 'publishers-header', label: 'Publishers', type: 'general', query: '', column: '' },
     { key: 'publishers', label: 'All Publishers', type: 'specific',
-      query: `SELECT COALESCE(b.publisher, 'Unknown') as name, COALESCE(SUM(pl.total_page_read), 0) as pages_read
-               FROM books b 
+      query: `SELECT COALESCE(p.name, 'Unknown') as name, COALESCE(SUM(pl.total_page_read), 0) as pages_read
+               FROM publishers p 
+               LEFT JOIN book_publishers bp ON p.publisher_id = bp.publisher_id
+               LEFT JOIN books b ON bp.book_id = b.book_id
                LEFT JOIN page_logs pl ON b.book_id = pl.book_id
                WHERE 1=1`, 
-      column: 'b.publisher' }
+      column: 'p.name' },
+    { key: 'specific-publisher', label: 'Select Publisher', type: 'detailed',
+      query: `SELECT p.name, p.publisher_id as id
+               FROM publishers p 
+               JOIN book_publishers bp ON p.publisher_id = bp.publisher_id
+               JOIN books b ON bp.book_id = b.book_id
+               JOIN page_logs pl ON b.book_id = pl.book_id
+               WHERE 1=1`,
+      column: 'p.name',
+      detailQuery: `SELECT b.title as name, COALESCE(SUM(pl.total_page_read), 0) as pages_read
+                    FROM books b
+                    JOIN book_publishers bp ON b.book_id = bp.book_id
+                    LEFT JOIN page_logs pl ON b.book_id = pl.book_id
+                    WHERE bp.publisher_id = ?`,
+      detailColumn: 'b.title' }
   ];
 
   const timeframeOptions: TimeframeOption[] = [
@@ -90,13 +138,41 @@ const Stats = () => {
   const [selectedChart, setSelectedChart] = useState<ChartOption>(chartOptions[1]);
   const [selectedTimeframe, setSelectedTimeframe] = useState<TimeframeOption>(timeframeOptions[2]);
 
+  const loadAvailableItems = useCallback(async () => {
+    if (selectedChart.type !== 'detailed') {
+      setAvailableItems([]);
+      setSelectedItem(null);
+      return;
+    }
+
+    try {
+      const query = selectedChart.query + ' ' + selectedTimeframe.filter + ` GROUP BY ${selectedChart.column} HAVING COUNT(*) > 0 ORDER BY ${selectedChart.column}`;
+      const result = await db.getAllAsync<{ name: string; id: string }>(query);
+      setAvailableItems(result);
+      if (result.length > 0 && !selectedItem) {
+        setSelectedItem(result[0]);
+      }
+    } catch (error) {
+      console.error('Error loading available items:', error);
+      setAvailableItems([]);
+    }
+  }, [selectedChart, selectedTimeframe, db, selectedItem]);
+
   const loadData = useCallback(async () => {
     if (selectedChart.type === 'general') return;
 
     setLoading(true);
     try {
-      const query = selectedChart.query + ' ' + selectedTimeframe.filter + ` GROUP BY ${selectedChart.column} HAVING pages_read > 0 ORDER BY pages_read DESC LIMIT 10`;
-      const result = await db.getAllAsync<{ name: string; pages_read: number }>(query);
+      let query = '';
+      let result: any[] = [];
+
+      if (selectedChart.type === 'specific') {
+        query = selectedChart.query + ' ' + selectedTimeframe.filter + ` GROUP BY ${selectedChart.column} HAVING pages_read > 0 ORDER BY pages_read DESC LIMIT 10`;
+        result = await db.getAllAsync<{ name: string; pages_read: number }>(query);
+      } else if (selectedChart.type === 'detailed' && selectedChart.detailQuery && selectedItem) {
+        query = selectedChart.detailQuery + ' ' + selectedTimeframe.filter + ` GROUP BY ${selectedChart.detailColumn} HAVING pages_read > 0 ORDER BY pages_read DESC LIMIT 10`;
+        result = await db.getAllAsync<{ name: string; pages_read: number }>(query, [selectedItem.id]);
+      }
       
       const data: ChartData[] = result.map(row => ({
         name: row.name || 'Unknown',
@@ -109,13 +185,76 @@ const Stats = () => {
       setChartData([]);
     }
     setLoading(false);
-  }, [selectedChart, selectedTimeframe, db]);
+  }, [selectedChart, selectedTimeframe, selectedItem, db]);
 
   useFocusEffect(
     useCallback(() => {
+      loadAvailableItems();
       loadData();
-    }, [loadData])
+    }, [loadAvailableItems, loadData])
   );
+
+  const wrapText = (text: string, maxLength: number = 10): string[] => {
+    if (text.length <= maxLength) return [text];
+    
+    const words = text.split(' ').filter(word => word.length > 0); // Remove empty strings
+    const lines: string[] = [];
+    let currentLine = '';
+    
+    for (const word of words) {
+      const proposedLine = currentLine ? `${currentLine} ${word}` : word;
+      
+      if (proposedLine.length <= maxLength) {
+        currentLine = proposedLine;
+      } else {
+        if (currentLine) {
+          lines.push(currentLine);
+          currentLine = word.length <= maxLength ? word : word.substring(0, maxLength);
+        } else {
+          // Single word is too long, break it at maxLength
+          lines.push(word.substring(0, maxLength));
+          currentLine = word.length > maxLength ? word.substring(maxLength) : '';
+        }
+      }
+    }
+    
+    if (currentLine) {
+      lines.push(currentLine);
+    }
+    
+    return lines.slice(0, 3); // Max 3 lines for better readability
+  };
+
+  const wrapButtonText = (text: string, maxLength: number = 12): string => {
+    if (text.length <= maxLength) return text;
+    
+    const words = text.split(' ');
+    const lines: string[] = [];
+    let currentLine = '';
+    
+    for (const word of words) {
+      const proposedLine = currentLine ? `${currentLine} ${word}` : word;
+      
+      if (proposedLine.length <= maxLength) {
+        currentLine = proposedLine;
+      } else {
+        if (currentLine) {
+          lines.push(currentLine);
+          currentLine = word.length <= maxLength ? word : word.substring(0, maxLength);
+        } else {
+          // Single word is too long, break it
+          lines.push(word.substring(0, maxLength));
+          currentLine = word.length > maxLength ? word.substring(maxLength) : '';
+        }
+      }
+    }
+    
+    if (currentLine) {
+      lines.push(currentLine);
+    }
+    
+    return lines.slice(0, 2).join('\n'); // Max 2 lines for buttons
+  };
 
   const renderChart = () => {
     if (loading) {
@@ -138,9 +277,9 @@ const Stats = () => {
     }
 
     const chartConfig = {
-      backgroundGradientFrom: "transparent",
-      backgroundGradientTo: "transparent",
-      color: (opacity = 1) => `rgba(${theme.colors.secondaryContainer}, ${opacity})`,
+      backgroundGradientFrom: theme.colors.surface,
+      backgroundGradientTo: theme.colors.surface,
+      color: (opacity = 1) => theme.colors.onSurface,
       strokeWidth: 2,
       barPercentage: 0.7,
       useShadowColorFromDataset: false,
@@ -149,12 +288,18 @@ const Stats = () => {
         fontSize: scale(10),
         fill: theme.colors.onSurface,
       },
+      fillShadowGradientFrom: theme.colors.primary,
+      fillShadowGradientTo: theme.colors.primary,
+      fillShadowGradientFromOpacity: 1,
+      fillShadowGradientToOpacity: 1,
     };
 
     const data = {
-      labels: chartData.map(item => 
-        item.name.length > 8 ? `${item.name.substring(0, 8)}...` : item.name
-      ),
+      labels: chartData.map(item => {
+        const wrappedLines = wrapText(item.name, 10);
+        // Ensure proper spacing by explicitly joining with newlines
+        return wrappedLines.length > 1 ? wrappedLines.join('\n') : item.name;
+      }),
       datasets: [{
         data: chartData.map(item => item.value),
       }]
@@ -164,13 +309,13 @@ const Stats = () => {
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chartScrollView}>
         <BarChart
           data={data}
-          width={Math.max(screenWidth - scale(80), chartData.length * scale(60))}
-          height={verticalScale(220)}
+          width={Math.max(screenWidth - scale(80), chartData.length * scale(80))}
+          height={verticalScale(280)}
           chartConfig={chartConfig}
           style={styles.chart}
           yAxisLabel=""
           yAxisSuffix=""
-          fromZero
+          fromZero={false}
           showValuesOnTopOfBars
         />
       </ScrollView>
@@ -179,7 +324,7 @@ const Stats = () => {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <View>
+      <ScrollView>
         {/* Header - Matching Home Style Exactly */}
         <Surface style={[styles.header, { backgroundColor: theme.colors.surface }]} elevation={1}>
           <View style={styles.headerContent}>
@@ -209,6 +354,30 @@ const Stats = () => {
               {/* White Chart Card */}
               <Card style={[styles.chartCard, { backgroundColor: theme.colors.surface }]} elevation={4}>
                 <Card.Content>
+                  {/* Informational Chips */}
+                  {!loading && chartData.length > 0 && (
+                    <View style={styles.chipsContainer}>
+                      <Chip 
+                        mode="outlined" 
+                        style={[styles.infoChip, { borderColor: 'transparent', backgroundColor: theme.colors.primary }]}
+                        textStyle={{ color: theme.colors.surface, fontSize: scale(11) }}
+                      >
+                        {selectedChart.type === 'detailed' && selectedItem ? 
+                          `${selectedChart.key.includes('author') ? selectedItem.name : 
+                             selectedChart.key.includes('category') ? selectedItem.name : selectedItem.name}` :
+                          selectedChart.label
+                        }
+                      </Chip>
+                      <Chip 
+                        mode="outlined" 
+                        style={[styles.infoChip, { backgroundColor: theme.colors.secondaryContainer, borderColor: 'transparent' }]}
+                        textStyle={{ color: theme.colors.surface, fontSize: scale(11) }}
+                      >
+                        {selectedTimeframe.label}
+                      </Chip>
+                    </View>
+                  )}
+                  
                   <View style={styles.chartContainer}>
                     {renderChart()}
                   </View>
@@ -270,7 +439,7 @@ const Stats = () => {
                     labelStyle={{ color: theme.colors.surface }}
                     icon="chevron-down"
                   >
-                    {selectedChart.label}
+                    {wrapButtonText(selectedChart.label)}
                   </Button>
                 }
               >
@@ -278,8 +447,9 @@ const Stats = () => {
                   <Menu.Item
                     key={option.key}
                     onPress={() => {
-                      if (option.type === 'specific') {
+                      if (option.type === 'specific' || option.type === 'detailed') {
                         setSelectedChart(option);
+                        setSelectedItem(null);
                         setChartMenuVisible(false);
                       }
                     }}
@@ -288,13 +458,50 @@ const Stats = () => {
                       color: theme.colors.onSurface,
                       fontWeight: option.type === 'general' ? '600' : '400',
                       fontSize: scale(14),
-                      marginLeft: option.type === 'specific' ? scale(20) : 0
+                      marginLeft: (option.type === 'specific' || option.type === 'detailed') ? scale(20) : 0
                     }}
                     style={option.type === 'general' ? { backgroundColor: theme.colors.surfaceVariant, opacity: 0.7 } : {}}
                   />
                 ))}
               </Menu>
             </View>
+
+            {selectedChart.type === 'detailed' && availableItems.length > 0 && (
+              <View style={styles.controlItem}>
+                <Text variant="labelMedium" style={[styles.controlLabel, { color: theme.colors.onSurface }]}>
+                  {selectedChart.key.includes('author') ? 'Author' : 
+                   selectedChart.key.includes('category') ? 'Category' : 'Publisher'}
+                </Text>
+                <Menu
+                  visible={itemMenuVisible}
+                  onDismiss={() => setItemMenuVisible(false)}
+                  anchor={
+                    <Button 
+                      mode="contained" 
+                      onPress={() => setItemMenuVisible(true)}
+                      style={[styles.menuButton, { borderColor: theme.colors.outline }]}
+                      contentStyle={styles.menuButtonContent}
+                      labelStyle={{ color: theme.colors.surface }}
+                      icon="chevron-down"
+                    >
+                      {wrapButtonText(selectedItem?.name || 'Select...')}
+                    </Button>
+                  }
+                >
+                  {availableItems.map((item) => (
+                    <Menu.Item
+                      key={item.id}
+                      onPress={() => {
+                        setSelectedItem(item);
+                        setItemMenuVisible(false);
+                      }}
+                      title={item.name}
+                      titleStyle={{ color: theme.colors.onSurface, fontSize: scale(14) }}
+                    />
+                  ))}
+                </Menu>
+              </View>
+            )}
 
             <View style={styles.controlItem}>
               <Text variant="labelMedium" style={[styles.controlLabel, { color: theme.colors.onSurface }]}>
@@ -312,7 +519,7 @@ const Stats = () => {
                     labelStyle={{ color: theme.colors.surface }}
                     icon="chevron-down"
                   >
-                    {selectedTimeframe.label}
+                    {wrapButtonText(selectedTimeframe.label)}
                   </Button>
                 }
               >
@@ -333,7 +540,7 @@ const Stats = () => {
         </View>
 
         <View style={styles.bottomSpacing} />
-      </View>
+      </ScrollView>
     </View>
   );
 };
@@ -366,7 +573,6 @@ const styles = StyleSheet.create({
   },
   // Section styling
   section: {
-    marginTop: verticalScale(16),
     paddingHorizontal: scale(20),
     marginBottom: verticalScale(16),
   },
@@ -385,9 +591,13 @@ const styles = StyleSheet.create({
   menuButton: {
     borderRadius: scale(8),
     justifyContent: 'center',
+    minHeight: verticalScale(40),
   },
   menuButtonContent: {
-    paddingVertical: verticalScale(8),
+    paddingVertical: verticalScale(10),
+    minHeight: verticalScale(40),
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   // Green Background Card
   backgroundCard: {
@@ -406,13 +616,6 @@ const styles = StyleSheet.create({
     marginHorizontal: scale(8),
     marginVertical: scale(6),
   },
-  chartHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: verticalScale(16),
-    flexWrap: 'wrap',
-  },
   chartTitle: {
     fontWeight: '600',
     flex: 1,
@@ -424,7 +627,7 @@ const styles = StyleSheet.create({
     fontSize: scale(12),
   },
   chartContainer: {
-    minHeight: verticalScale(280),
+    minHeight: verticalScale(320),
     justifyContent: 'center',
   },
   chartScrollView: {
@@ -432,10 +635,24 @@ const styles = StyleSheet.create({
   },
   chart: {
     borderRadius: scale(8),
+    marginTop: verticalScale(20),
+  },
+  // Informational Chips
+  chipsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: verticalScale(16),
+    gap: scale(12),
+    flexWrap: 'wrap',
+  },
+  infoChip: {
+    borderRadius: scale(16),
+    borderColor: 'transparent',
   },
   // Summary
   summaryContainer: {
-    marginTop: verticalScale(16),
+    marginTop: verticalScale(2),
   },
   divider: {
     marginVertical: verticalScale(16),
