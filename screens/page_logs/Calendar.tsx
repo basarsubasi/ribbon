@@ -479,6 +479,7 @@ export default function Calendar() {
 
       {/* Reading Logs */}
       <FlatList
+        showsVerticalScrollIndicator={false}
         data={logs}
         keyExtractor={item => `${item.page_log_id}`}
         renderItem={renderLogCard}
@@ -669,8 +670,8 @@ export default function Calendar() {
                     }) : 'Unknown Date'
                   }
                 </Text>
-                
-                <ScrollView style={styles.noteContent} showsVerticalScrollIndicator={true}>
+
+                <ScrollView showsVerticalScrollIndicator={false} style={styles.noteContent}>
                   <Text variant="bodyLarge" style={[styles.noteText, { color: theme.colors.onSurface }]}>
                     {bookNotes[currentNoteIndex]?.page_notes || 'No note available'}
                   </Text>

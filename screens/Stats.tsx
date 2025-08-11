@@ -374,7 +374,7 @@ const Stats = () => {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <ScrollView>
+      <ScrollView showsVerticalScrollIndicator={false}>
         {/* Header - Matching Home Style Exactly */}
         <Surface style={[styles.header, { backgroundColor: theme.colors.surface }]} elevation={1}>
           <View style={styles.headerContent}>

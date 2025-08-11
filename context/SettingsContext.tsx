@@ -54,10 +54,14 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         setTheme(savedSettings.theme || 'light');
 
       } else {
-        const fallbackLng = 'en';
-        const defaultLocale =
-          Localization.getLocales()[0]?.languageCode || fallbackLng;
-        setLanguage(defaultLocale);
+        // Use app defaults instead of device settings
+        // const fallbackLng = 'en';
+        // const defaultLocale =
+        //   Localization.getLocales()[0]?.languageCode || fallbackLng;
+        // setLanguage(defaultLocale);
+        // setDateFormat(deviceDateFormat);
+        
+        // Keep app defaults: language='en', theme='light', dateFormat uses device preference
         setDateFormat(deviceDateFormat);
       }
       setIsInitialized(true);
