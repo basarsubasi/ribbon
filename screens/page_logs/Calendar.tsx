@@ -428,7 +428,7 @@ export default function Calendar() {
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       {/* Header */}
-      <View style={[styles.header, { backgroundColor: theme.colors.surface }]}>
+      <View style={[styles.header, { backgroundColor: theme.colors.background }]}>
         <View style={styles.headerContent}>
           <CalendarIcon 
             width={scale(28)} 
@@ -442,10 +442,10 @@ export default function Calendar() {
         </View>
       </View>
 
-      <Divider />
+
 
       {/* Date Navigation Strip */}
-      <Surface style={[styles.stripContainer, { backgroundColor: theme.colors.surface }]} elevation={0}>
+      <Surface style={[styles.stripContainer, { backgroundColor: theme.colors.background }]} elevation={0}>
         <View style={styles.monthSection}>
           <Text variant="labelLarge" style={[styles.monthText, { color: theme.colors.onSurface }]}>
             {selectedDate.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}

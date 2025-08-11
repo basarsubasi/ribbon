@@ -439,7 +439,7 @@ const Home = () => {
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <ScrollView showsVerticalScrollIndicator={false} style={styles.scrollView}>
         {/* Header */}
-        <Surface style={[styles.header, { backgroundColor: theme.colors.surface }]} elevation={1}>
+        <Surface style={[styles.header, { backgroundColor: theme.colors.background }]} elevation={1}>
           <View style={styles.headerContent}>
             <View style={styles.logoContainer}>
               <BookIcon 
