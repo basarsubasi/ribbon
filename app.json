@@ -15,19 +15,16 @@
       "bundleIdentifier": "com.basarsubasi.ribbon"
     },
     "android": {
-      "versionCode": 1, 
+      "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/appicon.png",
         "backgroundColor": "#ffffff"
       },
       "package": "tr.com.basarsubasi.ribbonbeta"
     },
-
     "web": {
       "favicon": "./assets/appicon.png"
     },
-
-
     "plugins": [
       "expo-sqlite",
       [
@@ -39,11 +36,13 @@
             "buildToolsVersion": "35.0.0"
           }
         }
-
       ]
-
-
     ],
-    "owner": "basarsubasi"
+    "owner": "basarsubasi",
+    "extra": {
+      "eas": {
+        "projectId": "a1854f89-3534-4340-a731-7cdc6451cff5"
+      }
+    }
   }
 }
