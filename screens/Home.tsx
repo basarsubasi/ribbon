@@ -439,7 +439,7 @@ const Home = () => {
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <ScrollView showsVerticalScrollIndicator={false} style={styles.scrollView}>
         {/* Header */}
-        <Surface style={[styles.header, { backgroundColor: theme.colors.background }]} elevation={1}>
+        <Surface style={[styles.header, { backgroundColor: theme.colors.background }]} elevation={0}>
           <View style={styles.headerContent}>
             <View style={styles.logoContainer}>
               <BookIcon 
@@ -513,11 +513,11 @@ const Home = () => {
                   <Button
                     mode="contained"
                     style={[styles.addBookButton, { backgroundColor: theme.colors.primary }]}
-                    onPress={() => navigation.navigate('LibraryStack')}
+                    onPress={() => navigation.navigate('PageLogsStack')}
                     contentStyle={{ paddingVertical: verticalScale(4) }}
                     labelStyle={{ color: '#FFFFFF' }}
                     >
-                    {t('home.browseLibrary')}
+                    {t('home.startReading')}
                   </Button>
                 </View>
               )}

@@ -493,7 +493,7 @@ export default function Calendar() {
         ListEmptyComponent={() => (
           <View style={styles.emptyState}>
             <Text variant="bodyLarge" style={[styles.emptyText, { color: theme.colors.onSurfaceVariant }]}>
-              No reading sessions on {selectedDate.toLocaleDateString()}
+              No reading sessions on this day
             </Text>
             <Text variant="bodySmall" style={[styles.emptySubtext, { color: theme.colors.onSurfaceVariant }]}>
               Start reading!

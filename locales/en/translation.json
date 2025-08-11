@@ -19,7 +19,7 @@
     "continueReading": "Continue Reading",
     "noBooksInProgress": "No books in progress",
     "startReadingPrompt": "Start reading a book to see your progress here",
-    "browseLibrary": "Browse Library"
+    "startReading": "Start Reading"  
   },
   "library": {
     "tagline": "Your digital library",

@@ -58,13 +58,17 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
 
   useEffect(() => {
     const loadTheme = async () => {
-      try {
-        const storedTheme = await FileSystem.readAsStringAsync(themeFilePath);
-        setTheme(storedTheme === 'dark' ? CustomDarkTheme : CustomLightTheme);
-      } catch {
-        const colorScheme = Appearance.getColorScheme();
-        setTheme(colorScheme === 'dark' ? CustomDarkTheme : CustomLightTheme);
-      }
+    //  try {
+    //    const storedTheme = await FileSystem.readAsStringAsync(themeFilePath);
+    //    setTheme(storedTheme === 'dark' ? CustomDarkTheme : CustomLightTheme);
+    //  } catch {
+    //    const colorScheme = Appearance.getColorScheme();
+    //    setTheme(colorScheme === 'dark' ? CustomDarkTheme : CustomLightTheme);
+    //  }
+
+
+       // Always default to light theme instead of system preference
+        setTheme(CustomLightTheme);
     };
     loadTheme();
   }, []);
