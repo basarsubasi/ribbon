@@ -288,7 +288,8 @@ const Home = () => {
           // Navigate to PageLogs with book ID and today's date
           (navigation as any).navigate('PageLogsStack', {
             screen: 'LogPages',
-            params: { bookId: book.book_id }
+            params: { bookId: book.book_id, selectedDate: new Date().toISOString().split('T')[0] },
+
           });
         }}
         activeOpacity={0.7}

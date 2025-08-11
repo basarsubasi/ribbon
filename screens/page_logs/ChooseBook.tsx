@@ -22,10 +22,11 @@ import {
   Appbar
 } from 'react-native-paper';
 import { useTheme } from '../../context/ThemeContext';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { scale, verticalScale } from 'react-native-size-matters';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { RouteProp } from '@react-navigation/native';
 import { PageLogsStackParamList } from '../../utils/types';
 import { useSQLiteContext } from 'expo-sqlite';
 import { getCoverImageUri } from '../../utils/imageUtils';
@@ -34,6 +35,7 @@ import StackedBooksIcon from '../../components/StackedBooksIcon';
 
 
 type ChooseBookNavigationProp = StackNavigationProp<PageLogsStackParamList, 'ChooseBook'>;
+type ChooseBookRouteProp = RouteProp<PageLogsStackParamList, 'ChooseBook'>;
 
 const { width: screenWidth } = Dimensions.get('window');
 const COVER_WIDTH = screenWidth * 0.2;
@@ -77,8 +79,12 @@ interface SortOptions {
 export default function ChooseBook() {
   const { theme } = useTheme();
   const navigation = useNavigation<ChooseBookNavigationProp>();
+  const route = useRoute<ChooseBookRouteProp>();
   const { t } = useTranslation();
   const db = useSQLiteContext();
+  
+  // Get selected date from route params
+  const { selectedDate } = route.params || {};
   
   const [books, setBooks] = useState<Book[]>([]);
   const [filteredBooks, setFilteredBooks] = useState<Book[]>([]);
@@ -276,7 +282,10 @@ export default function ChooseBook() {
   };
 
   const handleBookPress = (book: Book) => {
-    navigation.navigate('LogPages', { bookId: book.book_id });
+    navigation.navigate('LogPages', { 
+      bookId: book.book_id,
+      selectedDate: selectedDate 
+    });
   };
 
   const clearFilter = () => {
@@ -661,10 +670,6 @@ export default function ChooseBook() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-
-              <Appbar.Header style={{ backgroundColor: theme.colors.surface }}>
-                <Appbar.Content title="Choose a Book to Log" />
-              </Appbar.Header>
     
       <FlatList
         data={filteredBooks}

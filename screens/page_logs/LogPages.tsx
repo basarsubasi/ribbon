@@ -52,7 +52,7 @@ export default function LogPages() {
   const { t } = useTranslation();
   const db = useSQLiteContext();
 
-  const { bookId } = route.params;
+  const { bookId, selectedDate: routeSelectedDate } = route.params;
 
   const [bookData, setBookData] = useState<BookData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -60,9 +60,13 @@ export default function LogPages() {
   const [endPage, setEndPage] = useState('');
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date>(
+    routeSelectedDate ? new Date(routeSelectedDate) : new Date()
+  );
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [pickerMonth, setPickerMonth] = useState<Date>(new Date());
+  const [pickerMonth, setPickerMonth] = useState<Date>(
+    routeSelectedDate ? new Date(routeSelectedDate) : new Date()
+  );
 
   useEffect(() => {
     loadBookData();
@@ -223,9 +227,6 @@ export default function LogPages() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <Appbar.Header style={{ backgroundColor: theme.colors.surface }}>
-        <Appbar.Content title="Log Reading Progress" />
-      </Appbar.Header>
       <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
         {/* Book Info Card */}
         <Card style={[styles.bookCard, { backgroundColor: theme.colors.surface }]}>

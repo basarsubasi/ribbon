@@ -680,7 +680,7 @@ const styles = StyleSheet.create({
     fontSize: scale(12),
   },
   chartContainer: {
-    minHeight: verticalScale(320),
+    minHeight: verticalScale(200),
     justifyContent: 'center',
   },
   chartScrollView: {

@@ -21,6 +21,7 @@
     "browseLibrary": "Browse Library"
   },
   "library": {
+    "tagline": "Your digital library",
     "addBook": "Add Book",
     "scanBarcode": "Scan Barcode",
     "searchOpenLibrary": "Search Open Library", 
@@ -39,7 +40,7 @@
     "unread": "Unread",
     "inProgress": "In Progress",
     "completed": "Completed",
-    "title": "Title",
+    "title": "library",
     "completion": "Completion",
     "dateAdded": "Date Added",
     "noBooksYet": "No books in your library yet",

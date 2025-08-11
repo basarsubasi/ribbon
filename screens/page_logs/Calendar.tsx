@@ -505,7 +505,9 @@ export default function Calendar() {
       <FAB
         icon="book-plus"
         style={[styles.fab, { backgroundColor: theme.colors.primary }]}
-        onPress={() => navigation.navigate('ChooseBook')}
+        onPress={() => navigation.navigate('ChooseBook', { 
+          selectedDate: selectedDate.toISOString().split('T')[0] 
+        })}
         mode="elevated"
         color={theme.colors.surface}
       />

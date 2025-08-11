@@ -82,9 +82,9 @@ export type LibraryStackParamList = {
 
 export type PageLogsStackParamList = {
   Calendar: undefined;
-  LogPages: { bookId: number };
+  LogPages: { bookId: number; selectedDate?: string };
   LogDetails: { logId: number };
   EditLog: { logId: number };
-  ChooseBook: undefined
+  ChooseBook: { selectedDate?: string };
 };
 
