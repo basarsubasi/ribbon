@@ -364,8 +364,8 @@ const Stats = () => {
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chartScrollView}>
         <BarChart
           data={data}
-          width={Math.max(screenWidth - scale(60), chartData.length * scale(90))}
-          height={verticalScale(320)}
+          width={Math.max(screenWidth - scale(80), chartData.length * scale(70))}
+          height={verticalScale(220)}
           chartConfig={chartConfig}
           style={styles.chart}
           yAxisLabel=""
