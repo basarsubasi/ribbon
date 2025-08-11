@@ -495,6 +495,9 @@ const Home = () => {
                     style={[styles.seeAllButton, { backgroundColor: theme.colors.primary }]}
                     contentStyle={styles.seeAllButtonContent}
                     labelStyle={[styles.seeAllText, { color: theme.colors.surface }]}
+                     icon={({ size, color }) => (
+                   <FontAwesome name="book" size={size} color={color} />
+                        )}
                   >
                     {t('home.seeAllBooks')}
                   </Button>
@@ -513,7 +516,7 @@ const Home = () => {
                     onPress={() => navigation.navigate('LibraryStack')}
                     contentStyle={{ paddingVertical: verticalScale(4) }}
                     labelStyle={{ color: '#FFFFFF' }}
-                  >
+                    >
                     {t('home.browseLibrary')}
                   </Button>
                 </View>
@@ -563,7 +566,7 @@ const Home = () => {
               <Ionicons name="stats-chart" size={size} color={color} />
             )}
           >
-            Go to Stats
+            {t('home.goToStats')}
           </Button>
         </View>
 

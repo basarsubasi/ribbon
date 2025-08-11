@@ -1,6 +1,6 @@
 {
   "home": {
-  "appTagline": "Digital Bookmark",
+    "appTagline": "Digital Bookmark",
     "readingStats": "Your Reading Stats",
     "totalBooks": "Total Books",
     "currentlyReading": "Currently Reading",
@@ -12,8 +12,9 @@
     "greatProgress": "Great progress!",
     "keepItUp": "Keep it up!",
     "startStreak": "Start your reading streak!",
+    "goToStats": "Go to stats",
     "noReadingToday": "No reading today",
-    "seeAllBooks": "Go to Library",
+    "seeAllBooks": "Go to library",
     "days": "days",
     "continueReading": "Continue Reading",
     "noBooksInProgress": "No books in progress",
