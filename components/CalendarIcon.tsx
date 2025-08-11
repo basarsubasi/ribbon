@@ -23,11 +23,6 @@ const CalendarIcon: React.FC<Props> = ({
       fill="white"
     />
     
-    {/* Calendar header section */}
-    <Path
-      d="M167.8 382V198.6C167.8 172.2 189.4 150.6 215.8 150.6H807.2C833.6 150.6 855.2 172.2 855.2 198.6V382H167.8Z"
-      fill={secondaryColor}
-    />
     
   {/* Calendar dates - first row: two right-aligned date pills matching other rows */}
 
