@@ -739,7 +739,7 @@ export default function Library() {
         keyExtractor={(item) => item.book_id.toString()}
         ListHeaderComponent={
           <>
-            <Surface style={[styles.heroHeader, { backgroundColor: theme.colors.background, borderBottomColor: theme.colors.outlineVariant, borderBottomWidth: StyleSheet.hairlineWidth }]} elevation={0}>
+            <Surface style={[styles.heroHeader, { backgroundColor: theme.colors.background }]} elevation={0}>
               <View style={styles.heroContent}>
                 <StackedBooksIcon
                   width={scale(72)}

@@ -376,7 +376,7 @@ const Stats = () => {
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Header - Matching Home Style Exactly */}
-        <Surface style={[styles.header, { backgroundColor: theme.colors.surface }]} elevation={1}>
+        <Surface style={[styles.header, { backgroundColor: theme.colors.background }]} elevation={0}>
           <View style={styles.headerContent}>
             <View style={styles.logoContainer}>
               <StatisticsIcon 
@@ -617,6 +617,7 @@ const styles = StyleSheet.create({
     marginLeft: scale(12),
     fontWeight: '300',
     letterSpacing: moderateScale(2),
+    marginBottom: verticalScale(8),
   },
   tagline: {
     opacity: 0.7,
