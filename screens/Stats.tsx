@@ -236,13 +236,18 @@ const Stats = () => {
     return lines.slice(0, 3); // Max 3 lines for better readability
   };
 
-  const wrapButtonText = (text: string, maxLength: number = 12): string => {
+  const wrapButtonText = (text: string, maxLength: number = 16): string => {
     if (text.length <= maxLength) return text;
     
     const words = text.split(' ').filter(word => word.length > 0);
     if (words.length <= 1) {
       // Single word - truncate intelligently
       return text.length > maxLength ? text.substring(0, maxLength - 3) + '...' : text;
+    }
+    
+    // For short multi-word text, try to fit it on one line first
+    if (text.length <= maxLength + 4) {
+      return text;
     }
     
     const lines: string[] = [];
@@ -269,8 +274,8 @@ const Stats = () => {
       lines.push(currentLine);
     }
     
-    // For buttons, prefer single line with ellipsis over multi-line
-    if (lines.length > 1 && lines.join('\n').length > maxLength * 1.5) {
+    // For buttons, prefer single line with ellipsis over multi-line for very long text
+    if (lines.length > 1 && lines.join('\n').length > maxLength * 2) {
       const fullText = lines.join(' ');
       return fullText.length > maxLength ? fullText.substring(0, maxLength - 3) + '...' : fullText;
     }
