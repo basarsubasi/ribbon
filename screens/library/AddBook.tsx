@@ -573,9 +573,10 @@ export default function AddBook() {
 
       {/* Authors Section */}
       <Surface style={[styles.section, { backgroundColor: theme.colors.surface }]} elevation={1}>
-        <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>
-          {t('addBook.authors')}
-        </Text>
+        <View style={styles.sectionTitleRow}>
+          <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.onSurface }]}> {t('addBook.authors')} </Text>
+          <IconButton icon="chevron-right" size={20} iconColor={theme.colors.primary} onPress={() => navigation.navigate('ManageLists', { type: 'authors' })} />
+        </View>
         
         <View style={styles.chipsContainer}>
           {authors.map((author, index) => (
@@ -646,9 +647,10 @@ export default function AddBook() {
 
       {/* Categories Section */}
       <Surface style={[styles.section, { backgroundColor: theme.colors.surface }]} elevation={1}>
-        <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>
-          {t('addBook.categories')}
-        </Text>
+        <View style={styles.sectionTitleRow}>
+          <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.onSurface }]}> {t('addBook.categories')} </Text>
+          <IconButton icon="chevron-right" size={20} iconColor={theme.colors.primary} onPress={() => navigation.navigate('ManageLists', { type: 'categories' })} />
+        </View>
         
         <View style={styles.chipsContainer}>
           {categories.map((category, index) => (
@@ -719,9 +721,10 @@ export default function AddBook() {
 
       {/* Publishers Section */}
       <Surface style={[styles.section, { backgroundColor: theme.colors.surface }]} elevation={1}>
-        <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>
-          {t('addBook.publishers')}
-        </Text>
+        <View style={styles.sectionTitleRow}>
+          <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.onSurface }]}> {t('addBook.publishers')} </Text>
+          <IconButton icon="chevron-right" size={20} iconColor={theme.colors.primary} onPress={() => navigation.navigate('ManageLists', { type: 'publishers' })} />
+        </View>
         
         <View style={styles.chipsContainer}>
           {publishers.map((publisher, index) => (
@@ -958,6 +961,12 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontWeight: '600',
+    marginBottom: scale(16),
+  },
+  sectionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: scale(16),
   },
   textInput: {

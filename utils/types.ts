@@ -78,6 +78,7 @@ export type LibraryStackParamList = {
   EditBook: { bookId: number };
   ScanBarcode: undefined;
   SearchBook: undefined;
+  ManageLists: { type: 'authors' | 'categories' | 'publishers' };
 };
 
 export type PageLogsStackParamList = {

@@ -32,6 +32,7 @@ import LibraryBookDetails from './screens/library/LibraryBookDetails';
 import OpenLibraryBookDetails from './screens/library/OpenLibraryBookDetails';
 import ScanBarcode from './screens/library/ScanBarcode';
 import SearchBook from './screens/library/SearchBook';
+import ManageLists from './screens/library/ManageLists';
 
 import Calendar from './screens/page_logs/Calendar';
 import ChooseBook from './screens/page_logs/ChooseBook';
@@ -84,6 +85,7 @@ function LibraryStackNavigator() {
       <LibraryStack.Screen name="OpenLibraryBookDetails" component={OpenLibraryBookDetails} options={{ headerShown: false }} />
       <LibraryStack.Screen name="ScanBarcode" component={ScanBarcode} options={{ headerShown: false }} />
       <LibraryStack.Screen name="SearchBook" component={SearchBook} options={{ headerShown: false }} />
+  <LibraryStack.Screen name="ManageLists" component={ManageLists} options={{ headerShown: false }} />
     </LibraryStack.Navigator>
   );
 }
