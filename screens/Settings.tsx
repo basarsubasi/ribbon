@@ -270,7 +270,6 @@ export default function Settings() {
                       setThemeMenuVisible(false);
                     }} 
                     title={t('settings.light')}
-                    leadingIcon="sunny"
                   />
                   <Menu.Item 
                     onPress={() => {
@@ -278,7 +277,6 @@ export default function Settings() {
                       setThemeMenuVisible(false);
                     }} 
                     title={t('settings.dark')}
-                    leadingIcon="moon"
                   />
                 </Menu>
               </Card.Content>
@@ -303,7 +301,7 @@ export default function Settings() {
                       {t('settings.bookCovers')}
                     </Text>
                     <Text style={[styles.settingDescription, { color: theme.colors.onSurface, opacity: 0.6 }]}>
-                      Re-download and cache book covers from web URLs
+                      Re-download and cache book covers from Open Library
                     </Text>
                   </View>
                 </View>

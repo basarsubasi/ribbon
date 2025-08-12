@@ -21,7 +21,6 @@ import { PageLogsStackParamList } from '../../utils/types';
 import { useSQLiteContext } from 'expo-sqlite';
 import { getCoverImageUri } from '../../utils/imageUtils';
 import { FontAwesome, Ionicons } from '@expo/vector-icons';
-import Calendar from './Calendar';
 
 type LogDetailsRouteProp = RouteProp<PageLogsStackParamList, 'LogDetails'>;
 type LogDetailsNavigationProp = StackNavigationProp<PageLogsStackParamList, 'LogDetails'>;
@@ -185,7 +184,7 @@ export default function LogDetails() {
       const logDate = formatDateKey(selectedDate);
       
       // Calculate total pages read
-      const totalPagesRead = end - start + 1;
+      const totalPagesRead = start === 0 ? end - start - 1 : end - start;
       
       // Get current page after log (snapshot)
       const currentPageAfterLog = Math.max(end, bookData.current_page);
