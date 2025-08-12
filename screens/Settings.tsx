@@ -147,8 +147,10 @@ export default function Settings() {
                       style={styles.selectButton}
                       contentStyle={styles.buttonContent}
                     >
-                      {getLanguageDisplayName(language)}
-                      <Ionicons name="chevron-down" size={scale(16)} />
+                      <View style={styles.buttonInner}>
+                        <Text style={styles.buttonLabel}>{getLanguageDisplayName(language)}</Text>
+                        <Ionicons name="chevron-down" size={scale(16)} style={styles.trailingIcon} />
+                      </View>
                     </Button>
                   }
                 >
@@ -198,8 +200,10 @@ export default function Settings() {
                       style={styles.selectButton}
                       contentStyle={styles.buttonContent}
                     >
-                      {getDateFormatDisplayName(dateFormat)}
-                      <Ionicons name="chevron-down" size={scale(16)} />
+                      <View style={styles.buttonInner}>
+                        <Text style={styles.buttonLabel}>{getDateFormatDisplayName(dateFormat)}</Text>
+                        <Ionicons name="chevron-down" size={scale(16)} style={styles.trailingIcon} />
+                      </View>
                     </Button>
                   }
                 >
@@ -253,8 +257,10 @@ export default function Settings() {
                       style={styles.selectButton}
                       contentStyle={styles.buttonContent}
                     >
-                      {getThemeDisplayName(appTheme)}
-                      <Ionicons name="chevron-down" size={scale(16)} />
+                      <View style={styles.buttonInner}>
+                        <Text style={styles.buttonLabel}>{getThemeDisplayName(appTheme)}</Text>
+                        <Ionicons name="chevron-down" size={scale(16)} style={styles.trailingIcon} />
+                      </View>
                     </Button>
                   }
                 >
@@ -308,17 +314,19 @@ export default function Settings() {
                   style={styles.actionButton}
                   contentStyle={styles.buttonContent}
                 >
-                  {isRecaching ? (
-                    <>
-                      <ActivityIndicator size="small" color="white" style={{ marginRight: scale(8) }} />
-                      {t('settings.reCachingCovers')}
-                    </>
-                  ) : (
-                    <>
-                      <Ionicons name="refresh" size={scale(18)} color="white" style={{ marginRight: scale(8) }} />
-                      {t('settings.reCacheCovers')}
-                    </>
-                  )}
+                  <View style={styles.buttonInner}>
+                    {isRecaching ? (
+                      <>
+                        <ActivityIndicator size="small" color="white" style={styles.leadingSpinner} />
+                        <Text style={[styles.buttonLabel, styles.buttonLabelInverse]}>{t('settings.reCachingCovers')}</Text>
+                      </>
+                    ) : (
+                      <>
+                        <Ionicons name="refresh" size={scale(18)} color="white" style={styles.leadingIcon} />
+                        <Text style={[styles.buttonLabel, styles.buttonLabelInverse]}>{t('settings.reCacheCovers')}</Text>
+                      </>
+                    )}
+                  </View>
                 </Button>
               </Card.Content>
             </Card>
@@ -346,8 +354,10 @@ export default function Settings() {
                     style={[styles.actionButton, styles.halfButton]}
                     contentStyle={styles.buttonContent}
                   >
-                    <Ionicons name="download" size={scale(16)} style={{ marginRight: scale(4) }} />
-                    {t('settings.export')}
+                    <View style={styles.buttonInner}>
+                      <Ionicons name="download" size={scale(16)} style={styles.leadingIcon} />
+                      <Text style={styles.buttonLabel}>{t('settings.export')}</Text>
+                    </View>
                   </Button>
                   <Button
                     mode="outlined"
@@ -355,8 +365,10 @@ export default function Settings() {
                     style={[styles.actionButton, styles.halfButton]}
                     contentStyle={styles.buttonContent}
                   >
-                    <Ionicons name="cloud-upload" size={scale(16)} style={{ marginRight: scale(4) }} />
-                    {t('settings.import')}
+                    <View style={styles.buttonInner}>
+                      <Ionicons name="cloud-upload" size={scale(16)} style={styles.leadingIcon} />
+                      <Text style={styles.buttonLabel}>{t('settings.import')}</Text>
+                    </View>
                   </Button>
                 </View>
               </Card.Content>
@@ -391,8 +403,10 @@ export default function Settings() {
                   style={styles.actionButton}
                   contentStyle={styles.buttonContent}
                 >
-                  <Ionicons name="logo-github" size={scale(18)} style={{ marginRight: scale(8) }} />
-                  GitHub
+                  <View style={styles.buttonInner}>
+                    <Ionicons name="logo-github" size={scale(18)} style={styles.leadingIcon} />
+                    <Text style={styles.buttonLabel}>GitHub</Text>
+                  </View>
                 </Button>
               </Card.Content>
             </Card>
@@ -500,5 +514,26 @@ const styles = StyleSheet.create({
   },
   halfButton: {
     flex: 1,
+  },
+  buttonInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  leadingIcon: {
+    marginRight: scale(6),
+  },
+  leadingSpinner: {
+    marginRight: scale(8),
+  },
+  trailingIcon: {
+    marginLeft: scale(6),
+  },
+  buttonLabel: {
+    fontSize: scale(14),
+    fontWeight: '500',
+  },
+  buttonLabelInverse: {
+    color: 'white',
   },
 });
