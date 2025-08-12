@@ -21,6 +21,7 @@ import {
   IconButton
 } from 'react-native-paper';
 import { useTheme } from '../../context/ThemeContext';
+import { useSettings } from '../../context/SettingsContext';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { scale, verticalScale } from 'react-native-size-matters';
@@ -85,6 +86,7 @@ interface LibraryBook {
 
 export default function LibraryBookDetails() {
   const { theme } = useTheme();
+  const { dateFormat } = useSettings();
   const navigation = useNavigation<LibraryBookDetailsNavigationProp>();
   const route = useRoute<LibraryBookDetailsRouteProp>();
   const { t } = useTranslation();
@@ -134,6 +136,15 @@ export default function LibraryBookDetails() {
   const [saving, setSaving] = useState(false);
   const [bookData, setBookData] = useState<LibraryBook | null>(null);
   const [imagePickerModalVisible, setImagePickerModalVisible] = useState(false);
+
+  // Format date according to user preference (dd-mm-yyyy or mm-dd-yyyy)
+  const formatDatePreference = (d: Date) => {
+    if (!d || isNaN(d.getTime())) return '';
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return dateFormat === 'mm-dd-yyyy' ? `${month}-${day}-${year}` : `${day}-${month}-${year}`;
+  };
 
   useEffect(() => {
     loadBookData();
@@ -561,7 +572,7 @@ export default function LibraryBookDetails() {
               </View>
             ) : (
               <TouchableOpacity
-                style={[styles.coverPlaceholder, { backgroundColor: theme.colors.surfaceVariant }]}
+                style={[styles.coverPlaceholder, { backgroundColor: theme.colors.background }]}
                 onPress={pickImage}
               >
                 <IconButton
@@ -606,7 +617,7 @@ export default function LibraryBookDetails() {
                 contentStyle={styles.saveButtonContent}
                 textColor={'#FFFFFF'}
               >
-                {t(`addBook.bookTypes.${bookType}`)}
+                {t(`addBook.${bookType}`)}
               </Button>
             }
           >
@@ -617,7 +628,7 @@ export default function LibraryBookDetails() {
                   setBookType(type.key);
                   setBookTypeMenuVisible(false);
                 }}
-                title={t(`addBook.bookTypes.${type.key}`)}
+                title={t(`addBook.${type.key}`)}
               />
             ))}
           </Menu>
@@ -948,12 +959,12 @@ export default function LibraryBookDetails() {
           <View style={styles.datesContainer}>
             {bookData?.last_read && (
               <Text variant="bodySmall" style={[styles.dateText, { color: theme.colors.onSurfaceVariant }]}>
-                {t('library.lastRead')} {new Date(bookData.last_read).toLocaleDateString()}
+                {t('library.lastRead')} {formatDatePreference(new Date(bookData.last_read))}
               </Text>
             )}
             {bookData?.date_added && (
               <Text variant="bodySmall" style={[styles.dateText, { color: theme.colors.onSurfaceVariant }]}>
-                {t('home.dateAdded')} {new Date(bookData.date_added).toLocaleDateString()}
+                {t('home.dateAdded')} {formatDatePreference(new Date(bookData.date_added))}
               </Text>
             )}
           </View>

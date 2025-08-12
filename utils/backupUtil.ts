@@ -50,7 +50,7 @@ export const exportDatabase = async (dateFormat: string, t: (key: string) => str
 
     await Sharing.shareAsync(tempExportPath, {
       mimeType: 'application/x-sqlite3',
-      dialogTitle: t('settings.exportDatabaseTitle') || 'Export Ribbon Database',
+      dialogTitle: t('settings.exportDatabaseTitle') || 'Export ribbon Database',
       UTI: 'public.database',
     });
   } catch (error) {

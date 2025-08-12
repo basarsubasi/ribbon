@@ -128,13 +128,13 @@
   },
   "addBook": {
     "bookType": "Book Type",
-    "bookTypes": {
-      "paperback": "Paperback",
-      "hardcover": "Hardcover",
-      "ebook": "E-book",
-      "pdf": "PDF",
-      "other": "Other"
-    },
+
+    "paperback": "Paperback",
+    "hardcover": "Hardcover",
+    "ebook": "E-book",
+    "pdf": "PDF",
+    "other": "Other",
+    "audiobook": "Audiobook",
     "title": "Title",
     "titlePlaceholder": "Enter book title",
     "authors": "Authors",

@@ -312,7 +312,7 @@ export default function AddBook() {
           >
             <Text style={[
               styles.star,
-              { color: star <= stars ? '#FFD700' : theme.colors.outline }
+              { color: star <= stars ? theme.colors.primary : theme.colors.outline }
             ]}>
               ★
             </Text>
@@ -347,7 +347,7 @@ export default function AddBook() {
             </View>
           ) : (
             <TouchableOpacity
-              style={[styles.coverPlaceholder, { backgroundColor: theme.colors.surfaceVariant }]}
+              style={[styles.coverPlaceholder, { backgroundColor: theme.colors.background }]}
               onPress={pickImage}
             >
               <IconButton

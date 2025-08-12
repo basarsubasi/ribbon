@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet, FlatList, TouchableOpacity, Dimensions, Image, ScrollView } from 'react-native';
 import { Text, Surface, FAB, IconButton, Divider, Modal, Portal, Card, Chip, Button, ProgressBar } from 'react-native-paper';
 import { useTheme } from '../../context/ThemeContext';
+import { useSettings } from '../../context/SettingsContext';
 import { useTranslation } from 'react-i18next';
 import CalendarIcon from '../../components/CalendarIcon';
 import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
@@ -49,6 +50,7 @@ const formatDateKey = (d: Date) => {
 
 export default function Calendar() {
   const { theme } = useTheme();
+  const { dateFormat } = useSettings();
   const { t } = useTranslation();
   const db = useSQLiteContext();
   const navigation = useNavigation<StackNavigationProp<any>>();
@@ -66,6 +68,14 @@ export default function Calendar() {
   const [currentNoteLog, setCurrentNoteLog] = useState<PageLogItem | null>(null);
   const [bookNotes, setBookNotes] = useState<PageLogItem[]>([]);
   const [currentNoteIndex, setCurrentNoteIndex] = useState(0);
+
+  // Format a date according to user preference (dd-mm-yyyy or mm-dd-yyyy)
+  const formatDatePreference = useCallback((d: Date) => {
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return dateFormat === 'mm-dd-yyyy' ? `${month}-${day}-${year}` : `${day}-${month}-${year}`;
+  }, [dateFormat]);
 
   const buildStrip = useCallback((center: Date) => {
     const days: Date[] = [];
@@ -493,7 +503,7 @@ export default function Calendar() {
         ListEmptyComponent={() => (
           <View style={styles.emptyState}>
             <Text variant="bodyLarge" style={[styles.emptyText, { color: theme.colors.onSurfaceVariant }]}>
-              No reading sessions on this day
+              No reading sessions on {formatDatePreference(selectedDate)}
             </Text>
             <Text variant="bodySmall" style={[styles.emptySubtext, { color: theme.colors.onSurfaceVariant }]}>
               Start reading!
