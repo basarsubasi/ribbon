@@ -83,7 +83,7 @@ const ManageLists: React.FC = () => {
           await db.runAsync(`INSERT OR IGNORE INTO ${table} (${column}) VALUES (?)`, [a]);
         }
       }
-      navigation.goBack();
+      navigation.navigate("Library");
       
     } catch (e) {
       console.error('Save failed', e);
@@ -97,11 +97,10 @@ const ManageLists: React.FC = () => {
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>      
       <Surface style={[styles.header, { backgroundColor: theme.colors.surface }]} elevation={1}>
         <View style={styles.headerRow}>
-          <IconButton icon="arrow-left" onPress={() => navigation.goBack()} iconColor={theme.colors.primary} />
-          <Text variant="titleLarge" style={[styles.headerTitle, { color: theme.colors.onSurface }]}>{titleMap[type]}</Text>
+          <Text variant="titleLarge" style={[styles.headerTitle, { color: theme.colors.onSurface, textAlign: 'left' }]}>{titleMap[type]}</Text>
           <View style={{ width: scale(40) }} />
         </View>
-        <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
+        <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant, textAlign: 'left' }}>
           Add new, or tap items to mark for deletion.
         </Text>
       </Surface>
@@ -150,6 +149,7 @@ const ManageLists: React.FC = () => {
           onPress={saveChanges}
           disabled={saving || (added.size === 0 && deleted.size === 0)}
           style={{ marginTop: verticalScale(16) }}
+          labelStyle={{ color: "#FFFFFF" }}
         >
           {saving ? 'Saving...' : 'Save Changes'}
         </Button>
