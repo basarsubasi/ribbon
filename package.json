@@ -23,8 +23,10 @@
     "expo-document-picker": "~13.0.3",
     "expo-file-system": "~18.0.12",
     "expo-image": "~2.0.7",
+    "expo-image-picker": "~16.0.6",
     "expo-localization": "~16.0.1",
     "expo-navigation-bar": "~4.0.9",
+    "expo-sharing": "~13.0.1",
     "expo-sqlite": "~15.1.4",
     "expo-status-bar": "~2.0.1",
     "i18next": "^24.2.1",
@@ -45,8 +47,7 @@
     "react-native-size-matters": "^0.4.2",
     "react-native-svg": "15.8.0",
     "react-native-vector-icons": "^10.2.0",
-    "slugify": "^1.6.6",
-    "expo-image-picker": "~16.0.6"
+    "slugify": "^1.6.6"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
