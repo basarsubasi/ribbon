@@ -657,15 +657,16 @@ export default function Library() {
         </Button>
       }
     >
-      <Menu.Item
-        onPress={() => handleSortToggle('latestRead')}
-        title={getSortMenuTitle('latestRead', t('library.lastRead') || 'Last Read')}
-        titleStyle={sortOptions.sortBy === 'latestRead' ? { fontWeight: 'bold' } : {}}
-      />
+      
       <Menu.Item
         onPress={() => handleSortToggle('title')}
         title={getSortMenuTitle('title', t('library.alphabetical') || 'Alphabetical')}
         titleStyle={sortOptions.sortBy === 'title' ? { fontWeight: 'bold' } : {}}
+      />
+      <Menu.Item
+        onPress={() => handleSortToggle('latestRead')}
+        title={getSortMenuTitle('latestRead', t('library.lastRead') || 'Last Read')}
+        titleStyle={sortOptions.sortBy === 'latestRead' ? { fontWeight: 'bold' } : {}}
       />
       <Menu.Item
         onPress={() => handleSortToggle('completion')}
