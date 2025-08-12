@@ -42,7 +42,7 @@ export default function Settings() {
       if (result.success) {
         const message = result.updatedCount === 0 
           ? 'No books with HTTP cover URLs found to cache.'
-          : `Successfully cached ${result.updatedCount} book covers.${result.errorCount > 0 ? ` ${result.errorCount} failed.` : ''}`;
+          : ` Successfully cached ${result.updatedCount} book covers. Restart your app.${result.errorCount > 0 ? ` ${result.errorCount} failed.` : ''}`;
         
         Alert.alert(
           'Cover Re-caching Complete',

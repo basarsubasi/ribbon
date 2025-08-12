@@ -363,6 +363,7 @@ export default function LogPages() {
             loading={saving}
             disabled={!startPage || !endPage || saving}
             style={styles.saveButton}
+            textColor='white'
             contentStyle={styles.saveButtonContent}
           >
             {saving ? 'Saving...' : 'Save Reading Log'}

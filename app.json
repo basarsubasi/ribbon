@@ -2,7 +2,7 @@
   "expo": {
     "name": "ribbon",
     "slug": "ribbon",
-    "version": "0.0.1",
+    "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/appicon.png",
     "newArchEnabled": true,
@@ -20,7 +20,7 @@
         "foregroundImage": "./assets/appicon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "tr.com.basarsubasi.ribbonbeta"
+      "package": "tr.com.basarsubasi.ribbon"
     },
     "web": {
       "favicon": "./assets/appicon.png"

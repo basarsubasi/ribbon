@@ -236,7 +236,7 @@
     "importFailedTitle": "Import Failed",
     "fileNotSelectedError": "No file was selected or the file is invalid.",
     "filePickerError": "An error occurred while selecting the file. Please try again.",
-    "importSuccessTitle": "Import Successful",
+    "importSuccessTitle": "Import Successful. Restart your app.",
     "importSuccessMessage": "Database imported successfully. Please restart the app for changes to take effect.",
     "importErrorMessageDefault": "Database import failed. An unexpected error occurred.",
     "importFailedRestoreSuccess": "Import failed, but your original data has been successfully restored.",

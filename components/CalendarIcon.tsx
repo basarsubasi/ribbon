@@ -80,7 +80,7 @@ const CalendarIcon: React.FC<Props> = ({
     {/* Calendar binding rings */}
     <Path
       d="M277.7 134.3H323.7V237.6H277.7V134.3ZM418.6 134.3H464.6V237.6H418.6V134.3ZM559.8 134.3H605.8V237.6H559.8V134.3ZM700.1 134.3H746.1V237.6H700.1V134.3Z"
-      fill={calendarBackground}
+      fill={calendarBorder}
     />
     
     {/* Calendar outline */}
