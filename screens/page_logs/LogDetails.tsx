@@ -230,6 +230,19 @@ export default function LogDetails() {
           onPress: async () => {
             setDeleting(true);
             try {
+              // Revert book current_page if this log was the one setting it
+              try {
+                if (bookData && logData) {
+                  // Fetch the latest current_page to avoid stale state
+                  const latest = await db.getFirstAsync<{ current_page: number }>('SELECT current_page FROM books WHERE book_id = ?', [bookData.book_id]);
+                  const latestCurrent = latest?.current_page;
+                  if (latestCurrent === logData.end_page) {
+                    await db.runAsync('UPDATE books SET current_page = ? WHERE book_id = ?', [logData.start_page, bookData.book_id]);
+                  }
+                }
+              } catch (e) {
+                console.warn('Revert current_page check failed', e);
+              }
               await db.runAsync('DELETE FROM page_logs WHERE page_log_id = ?', [logId]);
             } catch (error) {
               console.error('Error deleting log:', error);
