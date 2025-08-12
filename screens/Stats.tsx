@@ -415,7 +415,7 @@ const Stats = () => {
                       <Chip 
                         mode="outlined" 
                         style={[styles.infoChip, { borderColor: 'transparent', backgroundColor: theme.colors.primary }]}
-                        textStyle={{ color: theme.colors.surface, fontSize: scale(11) }}
+                        textStyle={{ color: '#FFFFFF', fontSize: scale(11) }}
                       >
                         {selectedChart.type === 'detailed' && selectedItem ? 
                           `${selectedChart.key.includes('author') ? selectedItem.name : 
@@ -426,7 +426,7 @@ const Stats = () => {
                       <Chip 
                         mode="outlined" 
                         style={[styles.infoChip, { backgroundColor: theme.colors.secondaryContainer, borderColor: 'transparent' }]}
-                        textStyle={{ color: theme.colors.surface, fontSize: scale(11) }}
+                        textStyle={{ color: '#FFFFFF', fontSize: scale(11) }}
                       >
                         {selectedTimeframe.label}
                       </Chip>
@@ -491,7 +491,7 @@ const Stats = () => {
                     onPress={() => setChartMenuVisible(true)}
                     style={[styles.menuButton, { borderColor: theme.colors.outline, backgroundColor: theme.colors.primary }]}
                     contentStyle={styles.menuButtonContent}
-                    labelStyle={{ color: theme.colors.surface }}
+                    labelStyle={{ color: '#FFFFFF' }}
                     icon="chevron-down"
                   >
                     {wrapButtonText(selectedChart.label)}
@@ -536,7 +536,7 @@ const Stats = () => {
                       onPress={() => setItemMenuVisible(true)}
                       style={[styles.menuButton, { borderColor: theme.colors.outline }]}
                       contentStyle={styles.menuButtonContent}
-                      labelStyle={{ color: theme.colors.surface }}
+                      labelStyle={{ color: '#FFFFFF' }}
                       icon="chevron-down"
                     >
                       {wrapButtonText(selectedItem?.name || 'Select...')}
@@ -571,7 +571,7 @@ const Stats = () => {
                     onPress={() => setTimeframeMenuVisible(true)}
                     style={[styles.menuButton, { borderColor: theme.colors.outline, backgroundColor: theme.colors.primary }]}
                     contentStyle={styles.menuButtonContent}
-                    labelStyle={{ color: theme.colors.surface }}
+                    labelStyle={{ color: '#FFFFFF' }}
                     icon="chevron-down"
                   >
                     {getTimeframeButtonLabel(selectedTimeframe.label)}

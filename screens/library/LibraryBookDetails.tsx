@@ -964,7 +964,7 @@ export default function LibraryBookDetails() {
             )}
             {bookData?.date_added && (
               <Text variant="bodySmall" style={[styles.dateText, { color: theme.colors.onSurfaceVariant }]}>
-                {t('home.dateAdded')} {formatDatePreference(new Date(bookData.date_added))}
+                {t('library.dateAdded')} {formatDatePreference(new Date(bookData.date_added))}
               </Text>
             )}
           </View>
@@ -991,7 +991,7 @@ export default function LibraryBookDetails() {
               style={[styles.saveButton, styles.deleteButton]}
               contentStyle={styles.saveButtonContent}
               textColor={'#FFFFFF'}
-              buttonColor={theme.colors.error}            >
+              buttonColor={theme.colors.deleteButton}            >
               Delete
             </Button>
           </View>

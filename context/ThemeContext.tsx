@@ -21,6 +21,7 @@ const CustomLightTheme = {
     onSecondary: '#212121',
     calendarBackground: '#FFFFFF',
     calendarBorder: '#FFFFFF',
+    deleteButton: '#F44336', // Red for delete button
     // Add other colors as needed, e.g., tertiary, error, etc.
   },
 };
@@ -42,6 +43,7 @@ const CustomDarkTheme = {
     onSecondary: '#FFFFFF',
     calendarBackground: '#212121ff',
     calendarBorder: '#121212',
+    deleteButton: '#F44336', // Red for delete button
     // Add other colors as needed
   },
 };

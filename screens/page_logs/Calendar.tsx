@@ -470,7 +470,7 @@ export default function Calendar() {
             }}
             activeOpacity={0.8}
           >
-            <Ionicons name="calendar" size={18} color={theme.colors.surface} />
+            <Ionicons name="calendar" size={18} color={'#FFFFFF'} />
           </TouchableOpacity>
         </View>
         
@@ -522,7 +522,7 @@ export default function Calendar() {
           selectedDate: selectedDate.toISOString().split('T')[0] 
         })}
         mode="elevated"
-        color={theme.colors.surface}
+        color={'#FFFFFF'}
       />
 
       {/* Date Picker Modal */}
@@ -540,7 +540,7 @@ export default function Calendar() {
             {/* Month Navigation */}
             <View style={styles.monthNavigation}>
               <TouchableOpacity
-                style={[styles.monthNavButton, { backgroundColor: theme.colors.background }]}
+                style={[styles.monthNavButton, { backgroundColor: theme.colors.surface }]}
                 onPress={() => {
                   const newMonth = new Date(pickerMonth);
                   newMonth.setMonth(pickerMonth.getMonth() - 1);
@@ -556,7 +556,7 @@ export default function Calendar() {
               </Text>
               
               <TouchableOpacity
-                style={[styles.monthNavButton, { backgroundColor: theme.colors.background }]}
+                style={[styles.monthNavButton, { backgroundColor: theme.colors.surface }]}
                 onPress={() => {
                   const newMonth = new Date(pickerMonth);
                   newMonth.setMonth(pickerMonth.getMonth() + 1);
@@ -649,7 +649,7 @@ export default function Calendar() {
                   setShowPicker(false);
                 }}
                 style={{ flex: 1, marginRight: scale(8) }}
-                labelStyle={{ color: theme.colors.surface }}
+                labelStyle={{ color: '#FFFFFF' }}
               >
                 Today
               </Button>

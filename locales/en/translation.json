@@ -22,6 +22,11 @@
     "startReading": "Start Reading"  
   },
   "library": {
+    "alphabetical": "Alphabetical",
+    "lastRead": "Last Read",
+    "rating": "Rating",
+    "price": "Price",
+    "progress": "Progress",
     "tagline": "Your digital library",
     "addBook": "Add Book",
     "scanBarcode": "Scan Barcode",
@@ -210,8 +215,8 @@
     "light": "Light",
     "dark": "Dark",
     "bookCovers": "Book Covers",
-    "reCacheCovers": "Re-cache Book Covers",
-    "reCachingCovers": "Re-caching Covers...",
+    "reCacheCovers": "Recover Book Covers",
+    "reCachingCovers": "Recovering Book Covers...",
     "databaseManagement": "Database Management",
     "export": "Export",
     "import": "Import",

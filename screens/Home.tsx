@@ -494,7 +494,7 @@ const Home = () => {
                     onPress={() => navigation.navigate('LibraryStack')}
                     style={[styles.seeAllButton, { backgroundColor: theme.colors.primary }]}
                     contentStyle={styles.seeAllButtonContent}
-                    labelStyle={[styles.seeAllText, { color: theme.colors.surface }]}
+                    labelStyle={[styles.seeAllText, { color: '#FFFFFF' }]}
                      icon={({ size, color }) => (
                    <FontAwesome name="book" size={size} color={color} />
                         )}
@@ -561,7 +561,7 @@ const Home = () => {
             onPress={() => navigation.navigate('Stats')}
             style={[styles.goToStatsButton, { backgroundColor: theme.colors.primary }]}
             contentStyle={styles.goToStatsButtonContent}
-            labelStyle={[styles.goToStatsText, { color: theme.colors.surface }]}
+            labelStyle={[styles.goToStatsText, { color: '#FFFFFF' }]}
             icon={({ size, color }) => (
               <Ionicons name="stats-chart" size={size} color={color} />
             )}

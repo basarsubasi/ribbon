@@ -309,7 +309,7 @@ export default function LogPages() {
                 }}
                 activeOpacity={0.8}
               >
-                <Ionicons name="calendar" size={18} color={theme.colors.surface} />
+                <Ionicons name="calendar" size={18} color={'#FFFFFF'} />
               </TouchableOpacity>
             </View>
           </Card.Content>
@@ -385,7 +385,7 @@ export default function LogPages() {
             {/* Month Navigation */}
             <View style={styles.monthNavigation}>
               <TouchableOpacity
-                style={[styles.monthNavButton, { backgroundColor: theme.colors.background }]}
+                style={[styles.monthNavButton, { backgroundColor: theme.colors.surface }]}
                 onPress={() => {
                   const newMonth = new Date(pickerMonth);
                   newMonth.setMonth(pickerMonth.getMonth() - 1);
@@ -401,7 +401,7 @@ export default function LogPages() {
               </Text>
               
               <TouchableOpacity
-                style={[styles.monthNavButton, { backgroundColor: theme.colors.background }]}
+                style={[styles.monthNavButton, { backgroundColor: theme.colors.surface }]}
                 onPress={() => {
                   const newMonth = new Date(pickerMonth);
                   newMonth.setMonth(pickerMonth.getMonth() + 1);
@@ -483,7 +483,7 @@ export default function LogPages() {
                   setShowDatePicker(false);
                 }}
                 style={{ flex: 1, marginLeft: scale(8) }}
-                labelStyle={{ color: theme.colors.surface }}
+                labelStyle={{ color: '#FFFFFF' }}
               >
                 Today
               </Button>

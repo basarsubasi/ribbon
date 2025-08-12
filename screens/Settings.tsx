@@ -74,7 +74,7 @@ export default function Settings() {
   const getLanguageDisplayName = (lang: string) => {
     switch (lang) {
       case 'en': return 'English';
-      case 'tr': return 'Türkçe';
+     // case 'tr': return 'Türkçe';
       default: return lang;
     }
   };
@@ -137,7 +137,6 @@ export default function Settings() {
                     >
                       <View style={styles.buttonInner}>
                         <Text style={[styles.buttonLabel, styles.buttonLabelInverse]}>{getLanguageDisplayName(language)}</Text>
-                        <Ionicons name="chevron-down" size={scale(16)} color="#FFFFFF" style={styles.trailingIcon} />
                       </View>
                     </Button>
                   }
@@ -148,14 +147,6 @@ export default function Settings() {
                       setLanguageMenuVisible(false);
                     }} 
                     title="English"
-                    leadingIcon="translate"
-                  />
-                  <Menu.Item 
-                    onPress={() => {
-                      setLanguage('tr');
-                      setLanguageMenuVisible(false);
-                    }} 
-                    title="Türkçe"
                     leadingIcon="translate"
                   />
                 </Menu>

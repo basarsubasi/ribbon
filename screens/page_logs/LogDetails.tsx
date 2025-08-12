@@ -262,9 +262,6 @@ export default function LogDetails() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <Appbar.Header style={{ backgroundColor: theme.colors.surface }}>
-        <Appbar.Content title="Edit Reading Log" />
-      </Appbar.Header>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Book Card */}
@@ -353,7 +350,7 @@ export default function LogDetails() {
                 }}
                 activeOpacity={0.8}
               >
-                <Ionicons name="calendar" size={18} color={theme.colors.surface} />
+                <Ionicons name="calendar" size={18} color="#FFFFFF" />
               </TouchableOpacity>
             </View>
           </Card.Content>
@@ -410,7 +407,7 @@ export default function LogDetails() {
               disabled={!startPage || !endPage || saving || deleting}
               style={[styles.updateButton, { backgroundColor: theme.colors.primary }]}
               contentStyle={styles.buttonContent}
-              labelStyle={{ color: theme.colors.surface }}
+              labelStyle={{ color: '#FFFFFF' }}
             >
               {saving ? 'Updating...' : 'Update Log'}
             </Button>
@@ -420,8 +417,8 @@ export default function LogDetails() {
               onPress={handleDeleteLog}
               loading={deleting}
               disabled={saving || deleting}
-              style={[styles.deleteButton, { backgroundColor: theme.colors.error }]}
-              labelStyle={{ color: theme.colors.surface }}
+              style={[styles.deleteButton, { backgroundColor: theme.colors.deleteButton }]}
+              labelStyle={{ color: '#FFFFFF' }}
               contentStyle={styles.buttonContent}
             >
               {deleting ? 'Deleting...' : 'Delete Log'}
@@ -445,7 +442,7 @@ export default function LogDetails() {
             {/* Month Navigation */}
             <View style={styles.monthNavigation}>
               <TouchableOpacity
-                style={[styles.monthNavButton, { backgroundColor: theme.colors.background }]}
+                style={[styles.monthNavButton, { backgroundColor: theme.colors.surface }]}
                 onPress={() => {
                   const newMonth = new Date(pickerMonth);
                   newMonth.setMonth(pickerMonth.getMonth() - 1);
@@ -461,7 +458,7 @@ export default function LogDetails() {
               </Text>
               
               <TouchableOpacity
-                style={[styles.monthNavButton, { backgroundColor: theme.colors.background }]}
+                style={[styles.monthNavButton, { backgroundColor: theme.colors.surface }]}
                 onPress={() => {
                   const newMonth = new Date(pickerMonth);
                   newMonth.setMonth(pickerMonth.getMonth() + 1);
@@ -544,7 +541,7 @@ export default function LogDetails() {
                   setShowDatePicker(false);
                 }}
                 style={{ flex: 1, marginRight: scale(8) }}
-                labelStyle={{ color: theme.colors.surface }}
+                labelStyle={{ color: '#FFFFFF' }}
               >
                 Today
               </Button>
