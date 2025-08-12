@@ -1053,7 +1053,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: scale(16), 
     paddingTop: scale(12),
     paddingBottom: scale(25),
-    gap: scale(4)
+    gap: scale(8)
   },
   dateText: { 
     fontStyle: 'italic', 
