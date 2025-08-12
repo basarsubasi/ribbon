@@ -225,7 +225,7 @@ export default function Settings() {
                       <Ionicons name="sunny" size={scale(14)} color={appTheme === 'light' ? theme.colors.primary : theme.colors.onSurface} />
                     </View>
                     <View
-                      style={[styles.toggleTrack, { backgroundColor: appTheme === 'dark' ? theme.colors.primary : 'rgba(0,0,0,0.2)' }]}
+                      style={[styles.toggleTrack, { backgroundColor: theme.colors.primary }]}
                     >
                       <View
                         style={[
