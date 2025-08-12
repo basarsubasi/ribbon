@@ -20,16 +20,18 @@ import { useSettings } from '../context/SettingsContext';
 import { reCacheBookCovers } from '../utils/coverCacheUtil';
 import { exportDatabase, importDatabase } from '../utils/backupUtil';
 import SettingsIcon from '../components/SettingsIcon';
+import { useTheme as useThemeContext } from '../context/ThemeContext';
 
 export default function Settings() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const { language, setLanguage, dateFormat, setDateFormat, theme: appTheme, setTheme } = useSettings();
+  const { setMode } = useThemeContext();
 
   const [languageMenuVisible, setLanguageMenuVisible] = useState(false);
-  const [dateFormatMenuVisible, setDateFormatMenuVisible] = useState(false);
-  const [themeMenuVisible, setThemeMenuVisible] = useState(false);
+  // Date format now uses a toggle instead of menu
+  // Removed theme menu; using toggle switch instead
   const [isRecaching, setIsRecaching] = useState(false);
 
   const handleReCacheCovers = async () => {
@@ -77,21 +79,7 @@ export default function Settings() {
     }
   };
 
-  const getDateFormatDisplayName = (format: string) => {
-    switch (format) {
-      case 'dd-mm-yyyy': return 'DD-MM-YYYY';
-      case 'mm-dd-yyyy': return 'MM-DD-YYYY';
-      default: return format;
-    }
-  };
 
-  const getThemeDisplayName = (themeType: string) => {
-    switch (themeType) {
-      case 'light': return t('settings.light');
-      case 'dark': return t('settings.dark');
-      default: return themeType;
-    }
-  };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
@@ -174,111 +162,92 @@ export default function Settings() {
               </Card.Content>
             </Card>
 
-            {/* Date Format Card */}
+            {/* Date Format Card (Toggle) */}
             <Card style={[styles.settingCard, { backgroundColor: theme.colors.surface }]} elevation={2}>
               <Card.Content style={styles.cardContent}>
-                <View style={styles.settingHeader}>
-                  <View style={styles.settingIcon}>
-                    <Ionicons name="calendar-outline" size={scale(20)} color={theme.colors.primary} />
+                <View style={styles.settingHeaderToggle}>
+                  <View style={styles.settingHeaderLeft}>
+                    <View style={styles.settingIcon}>
+                      <Ionicons name="calendar-outline" size={scale(20)} color={theme.colors.primary} />
+                    </View>
+                    <View style={styles.settingInfo}>
+                      <Text style={[styles.settingTitle, { color: theme.colors.onSurface }]}>
+                        {t('settings.dateFormat')}
+                      </Text>
+                      <Text style={[styles.settingDescription, { color: theme.colors.onSurface, opacity: 0.6 }]}>Toggle date ordering</Text>
+                    </View>
                   </View>
-                  <View style={styles.settingInfo}>
-                    <Text style={[styles.settingTitle, { color: theme.colors.onSurface }]}>
-                      {t('settings.dateFormat')}
-                    </Text>
-                    <Text style={[styles.settingDescription, { color: theme.colors.onSurface, opacity: 0.6 }]}>
-                      Set how dates are displayed
-                    </Text>
+                  <View style={styles.toggleWrapper}>
+                    <Text style={[styles.toggleSideLabel, { color: dateFormat === 'dd-mm-yyyy' ? theme.colors.primary : theme.colors.onSurface }]}>DD-MM</Text>
+                    <View
+                      style={[styles.toggleTrack, { backgroundColor: theme.colors.primary }]}
+                    >
+                      <View
+                        style={[
+                          styles.toggleThumb,
+                          dateFormat === 'mm-dd-yyyy' ? styles.toggleThumbOn : styles.toggleThumbOff,
+                        ]}
+                      />
+                      <View
+                        onStartShouldSetResponder={() => true}
+                        onResponderRelease={() => {
+                          const next = dateFormat === 'dd-mm-yyyy' ? 'mm-dd-yyyy' : 'dd-mm-yyyy';
+                          setDateFormat(next);
+                        }}
+                        style={StyleSheet.absoluteFill}
+                      />
+                    </View>
+                    <Text style={[styles.toggleSideLabel, { color: dateFormat === 'mm-dd-yyyy' ? theme.colors.primary : theme.colors.onSurface }]}>MM-DD</Text>
                   </View>
                 </View>
-                <Menu
-                  visible={dateFormatMenuVisible}
-                  onDismiss={() => setDateFormatMenuVisible(false)}
-                  anchor={
-                    <Button
-                      mode="contained"
-                      onPress={() => setDateFormatMenuVisible(true)}
-                      style={styles.selectButton}
-                      contentStyle={styles.buttonContent}
-                    >
-                      <View style={styles.buttonInner}>
-                        <Text style={[styles.buttonLabel, styles.buttonLabelInverse]}>{getDateFormatDisplayName(dateFormat)}</Text>
-                        <Ionicons name="chevron-down" size={scale(16)} color="#FFFFFF" style={styles.trailingIcon} />
-                      </View>
-                    </Button>
-                  }
-                >
-                  <Menu.Item 
-                    onPress={() => {
-                      setDateFormat('dd-mm-yyyy');
-                      setDateFormatMenuVisible(false);
-                    }} 
-                    title="DD-MM-YYYY"
-                    leadingIcon="calendar"
-                  />
-                  <Menu.Item 
-                    onPress={() => {
-                      setDateFormat('mm-dd-yyyy');
-                      setDateFormatMenuVisible(false);
-                    }} 
-                    title="MM-DD-YYYY"
-                    leadingIcon="calendar"
-                  />
-                </Menu>
               </Card.Content>
             </Card>
 
-            {/* Theme Card */}
+            {/* Theme Card (Toggle) */}
             <Card style={[styles.settingCard, { backgroundColor: theme.colors.surface }]} elevation={2}>
               <Card.Content style={styles.cardContent}>
-                <View style={styles.settingHeader}>
-                  <View style={styles.settingIcon}>
-                    <Ionicons 
-                      name={appTheme === 'dark' ? "moon" : "sunny"} 
-                      size={scale(20)} 
-                      color={theme.colors.primary} 
-                    />
+                <View style={styles.settingHeaderToggle}> 
+                  <View style={styles.settingHeaderLeft}>
+                    <View style={styles.settingIcon}>
+                      <Ionicons 
+                        name={appTheme === 'dark' ? "moon" : "sunny"} 
+                        size={scale(20)} 
+                        color={theme.colors.primary} 
+                      />
+                    </View>
+                    <View style={styles.settingInfo}>
+                      <Text style={[styles.settingTitle, { color: theme.colors.onSurface }]}> {t('settings.theme')} </Text>
+                      <Text style={[styles.settingDescription, { color: theme.colors.onSurface, opacity: 0.6 }]}>Toggle light / dark mode</Text>
+                    </View>
                   </View>
-                  <View style={styles.settingInfo}>
-                    <Text style={[styles.settingTitle, { color: theme.colors.onSurface }]}>
-                      {t('settings.theme')}
-                    </Text>
-                    <Text style={[styles.settingDescription, { color: theme.colors.onSurface, opacity: 0.6 }]}>
-                      Choose between light and dark mode
-                    </Text>
+                  <View style={styles.toggleWrapper}>
+                    <View style={styles.toggleSide}> 
+                      <Ionicons name="sunny" size={scale(14)} color={appTheme === 'light' ? theme.colors.primary : theme.colors.onSurface} />
+                    </View>
+                    <View
+                      style={[styles.toggleTrack, { backgroundColor: appTheme === 'dark' ? theme.colors.primary : 'rgba(0,0,0,0.2)' }]}
+                    >
+                      <View
+                        style={[
+                          styles.toggleThumb,
+                          appTheme === 'dark' ? styles.toggleThumbOn : styles.toggleThumbOff,
+                        ]}
+                      />
+                      <View
+                        onStartShouldSetResponder={() => true}
+                        onResponderRelease={() => {
+                          const next = appTheme === 'light' ? 'dark' : 'light';
+                          setTheme(next);
+                          setMode(next);
+                        }}
+                        style={StyleSheet.absoluteFill}
+                      />
+                    </View>
+                    <View style={styles.toggleSide}>
+                      <Ionicons name="moon" size={scale(14)} color={appTheme === 'dark' ? theme.colors.primary : theme.colors.onSurface} />
+                    </View>
                   </View>
                 </View>
-                <Menu
-                  visible={themeMenuVisible}
-                  onDismiss={() => setThemeMenuVisible(false)}
-                  anchor={
-                    <Button
-                      mode="contained"
-                      onPress={() => setThemeMenuVisible(true)}
-                      style={styles.selectButton}
-                      contentStyle={styles.buttonContent}
-                    >
-                      <View style={styles.buttonInner}>
-                        <Text style={[styles.buttonLabel, styles.buttonLabelInverse]}>{getThemeDisplayName(appTheme)}</Text>
-                        <Ionicons name="chevron-down" size={scale(16)} color="#FFFFFF" style={styles.trailingIcon} />
-                      </View>
-                    </Button>
-                  }
-                >
-                  <Menu.Item 
-                    onPress={() => {
-                      setTheme('light');
-                      setThemeMenuVisible(false);
-                    }} 
-                    title={t('settings.light')}
-                  />
-                  <Menu.Item 
-                    onPress={() => {
-                      setTheme('dark');
-                      setThemeMenuVisible(false);
-                    }} 
-                    title={t('settings.dark')}
-                  />
-                </Menu>
               </Card.Content>
             </Card>
           </View>
@@ -470,6 +439,60 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: verticalScale(12),
+  },
+  settingHeaderToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: verticalScale(4),
+  },
+  settingHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    paddingRight: scale(12),
+  },
+  toggleWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  toggleSide: {
+    width: scale(42),
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  toggleTrack: {
+    width: scale(70),
+    height: verticalScale(30),
+    borderRadius: verticalScale(30) / 2,
+    marginHorizontal: scale(4),
+    padding: scale(4),
+    justifyContent: 'center',
+  },
+  toggleThumb: {
+    width: scale(26),
+    height: scale(26),
+    borderRadius: scale(13),
+  },
+  toggleThumbOn: {
+    backgroundColor: '#FFFFFF',
+    alignSelf: 'flex-end',
+  },
+  toggleThumbOff: {
+    backgroundColor: '#FFFFFF',
+    alignSelf: 'flex-start',
+  },
+  toggleLabel: {
+    fontSize: scale(11),
+    fontWeight: '600',
+    letterSpacing: 0.5,
+  },
+  toggleSideLabel: {
+    fontSize: scale(11),
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    minWidth: scale(42),
+    textAlign: 'center',
   },
   settingIcon: {
     width: scale(40),

@@ -2,6 +2,7 @@ import React, { createContext, useState, useEffect, useContext, ReactNode } from
 import { Appearance } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import { MD3LightTheme, MD3DarkTheme } from 'react-native-paper';
+import { useSettings } from './SettingsContext';
 
 // Define your custom light theme
 const CustomLightTheme = {
@@ -41,9 +42,11 @@ const CustomDarkTheme = {
   },
 };
 
-// Context for theme management
+// Context for theme management (driven by SettingsContext.theme)
 const ThemeContext = createContext({
-  theme: CustomLightTheme, // Default to your custom light theme
+  theme: CustomLightTheme, // full Paper theme object
+  mode: 'light' as 'light' | 'dark',
+  setMode: (_m: 'light' | 'dark') => {},
   toggleTheme: () => {},
 });
 
@@ -52,35 +55,52 @@ type ThemeProviderProps = {
 };
 
 export const ThemeProvider = ({ children }: ThemeProviderProps) => {
+  const { theme: settingsTheme } = useSettings(); // 'light' | 'dark' from SettingsContext
+  const [mode, setMode] = useState<'light' | 'dark'>('light');
   const [theme, setTheme] = useState(CustomLightTheme);
 
   const themeFilePath = `${FileSystem.documentDirectory}theme.json`;
 
+  // Initialize based on stored file or settings (priority: stored, then settings, then system)
   useEffect(() => {
     const loadTheme = async () => {
-    //  try {
-    //    const storedTheme = await FileSystem.readAsStringAsync(themeFilePath);
-    //    setTheme(storedTheme === 'dark' ? CustomDarkTheme : CustomLightTheme);
-    //  } catch {
-    //    const colorScheme = Appearance.getColorScheme();
-    //    setTheme(colorScheme === 'dark' ? CustomDarkTheme : CustomLightTheme);
-    //  }
-
-
-       // Always default to light theme instead of system preference
-        setTheme(CustomLightTheme);
+      try {
+        const stored = await FileSystem.readAsStringAsync(themeFilePath);
+        const initialMode = stored === 'dark' ? 'dark' : 'light';
+        setMode(initialMode);
+        setTheme(initialMode === 'dark' ? CustomDarkTheme : CustomLightTheme);
+      } catch {
+        const initialMode = settingsTheme || (Appearance.getColorScheme() === 'dark' ? 'dark' : 'light');
+        setMode(initialMode);
+        setTheme(initialMode === 'dark' ? CustomDarkTheme : CustomLightTheme);
+      }
     };
     loadTheme();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const toggleTheme = async () => {
-    const newTheme = theme === CustomLightTheme ? CustomDarkTheme : CustomLightTheme;
-    setTheme(newTheme);
-    await FileSystem.writeAsStringAsync(themeFilePath, theme === CustomLightTheme ? 'dark' : 'light');
+  // React to SettingsContext theme changes
+  useEffect(() => {
+    if (settingsTheme && settingsTheme !== mode) {
+      setMode(settingsTheme);
+      setTheme(settingsTheme === 'dark' ? CustomDarkTheme : CustomLightTheme);
+      FileSystem.writeAsStringAsync(themeFilePath, settingsTheme).catch(() => {});
+    }
+  }, [settingsTheme, mode]);
+
+  const setModeExplicit = async (m: 'light' | 'dark') => {
+    setMode(m);
+    setTheme(m === 'dark' ? CustomDarkTheme : CustomLightTheme);
+    try { await FileSystem.writeAsStringAsync(themeFilePath, m); } catch {}
+  };
+
+  const toggleTheme = () => {
+    const next = mode === 'light' ? 'dark' : 'light';
+    setModeExplicit(next);
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme, mode, setMode: setModeExplicit, toggleTheme }}>
       {children}
     </ThemeContext.Provider>
   );

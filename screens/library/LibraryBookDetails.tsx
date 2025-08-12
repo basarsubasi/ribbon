@@ -604,7 +604,6 @@ export default function LibraryBookDetails() {
                 onPress={() => setBookTypeMenuVisible(true)}
                 style={styles.menuButton}
                 contentStyle={styles.saveButtonContent}
-                icon="chevron-down"
                 textColor={'#FFFFFF'}
               >
                 {t(`addBook.bookTypes.${bookType}`)}

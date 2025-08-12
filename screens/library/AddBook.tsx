@@ -537,7 +537,6 @@ export default function AddBook() {
               onPress={() => setBookTypeMenuVisible(true)}
               style={styles.menuButton}
               contentStyle={styles.saveButtonContent}
-              icon="chevron-down"
               textColor={'#FFFFFF'}
             >
               {t(`addBook.${bookType}`)}
