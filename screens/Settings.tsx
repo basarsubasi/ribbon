@@ -12,13 +12,14 @@ import {
   IconButton
 } from 'react-native-paper';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { scale, verticalScale } from 'react-native-size-matters';
+import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 
 import { useSettings } from '../context/SettingsContext';
 import { reCacheBookCovers } from '../utils/coverCacheUtil';
 import { exportDatabase, importDatabase } from '../utils/backupUtil';
+import SettingsIcon from '../components/SettingsIcon';
 
 export default function Settings() {
   const theme = useTheme();
@@ -96,24 +97,19 @@ export default function Settings() {
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Header */}
-        <Surface style={[styles.headerSurface, { backgroundColor: theme.colors.primary }]}>
-          <View style={styles.header}>
-            <View style={styles.headerContent}>
-              <Surface style={[styles.iconContainer, { backgroundColor: theme.colors.surface }]}>
-                <Ionicons 
-                  name="settings-outline" 
-                  size={scale(32)} 
-                  color={theme.colors.primary} 
-                />
-              </Surface>
-              <View style={styles.headerText}>
-                <Text style={[styles.title, { color: theme.colors.onPrimary }]}>
-                  {t('settings.title')}
-                </Text>
-                <Text style={[styles.subtitle, { color: theme.colors.onPrimary, opacity: 0.8 }]}>
-                  Customize your reading experience
-                </Text>
-              </View>
+        <Surface style={[styles.header, { backgroundColor: theme.colors.background }]} elevation={0}>
+          <View style={styles.headerContent}>
+            <View style={styles.logoContainer}>
+              <SettingsIcon 
+                width={scale(40)} 
+                height={scale(40)} 
+                primaryColor={theme.colors.primary}
+                secondaryColor={theme.colors.primaryContainer}
+                accentColor={theme.colors.primary}
+              />
+              <Text variant="headlineLarge" style={[styles.appName, { color: theme.colors.primary }]}>
+                {t('settings.title')}
+              </Text>
             </View>
           </View>
         </Surface>
@@ -416,42 +412,31 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
-  headerSurface: {
-    borderBottomLeftRadius: scale(24),
-    borderBottomRightRadius: scale(24),
-    elevation: 4,
-  },
   header: {
     paddingHorizontal: scale(20),
     paddingVertical: verticalScale(24),
+    marginBottom: verticalScale(8),
   },
   headerContent: {
+    alignItems: 'center',
+  },
+  logoContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: verticalScale(8),
   },
-  iconContainer: {
-    width: scale(60),
-    height: scale(60),
-    borderRadius: scale(30),
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 2,
+  appName: {
+    marginLeft: scale(12),
+    fontWeight: '300',
+    letterSpacing: moderateScale(2),
+    textTransform: 'lowercase',
   },
-  headerText: {
-    marginLeft: scale(16),
-    flex: 1,
-  },
-  title: {
-    fontSize: scale(28),
-    fontWeight: 'bold',
-  },
-  subtitle: {
-    fontSize: scale(14),
-    marginTop: verticalScale(2),
+  tagline: {
+    opacity: 0.7,
   },
   content: {
     paddingHorizontal: scale(16),
-    marginTop: verticalScale(20),
+    marginTop: verticalScale(8),
   },
   section: {
     marginBottom: verticalScale(24),
