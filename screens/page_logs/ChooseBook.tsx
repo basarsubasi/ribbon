@@ -601,7 +601,7 @@ export default function ChooseBook() {
       />
       <Menu.Item
         onPress={() => handleSortToggle('title')}
-        title={getSortMenuTitle('title', t('library.title') || 'Title')}
+        title={getSortMenuTitle('title', t('library.alphabetical') || 'Alphabetical')}
         titleStyle={sortOptions.sortBy === 'title' ? { fontWeight: 'bold' } : {}}
       />
       <Menu.Item
