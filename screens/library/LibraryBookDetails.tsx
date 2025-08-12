@@ -414,7 +414,7 @@ export default function LibraryBookDetails() {
   const confirmDeleteBook = () => {
     Alert.alert(
       'Delete Book',
-      'Are you sure you want to delete this book? This action cannot be undone.',
+      'Are you sure you want to delete this book? All the associated logs will be deleted as well. This action cannot be undone.',
       [
         { text: 'Cancel', style: 'cancel' },
         { text: 'Delete', style: 'destructive', onPress: deleteBook }
