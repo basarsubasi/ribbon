@@ -50,6 +50,7 @@ const BOOK_TYPES = [
   { key: 'hardcover', value: 'Hardcover' },
   { key: 'ebook', value: 'E-book' },
   { key: 'pdf', value: 'PDF' },
+  { key: 'audiobook', value: 'Audiobook' },
   { key: 'other', value: 'Other' }
 ];
 
