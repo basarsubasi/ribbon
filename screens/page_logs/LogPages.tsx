@@ -136,14 +136,9 @@ export default function LogPages() {
     setSaving(true);
     try {
       const logDate = formatDateKey(selectedDate);
-      const currentTime = new Date().toLocaleTimeString('en-US', { 
-        hour12: false, 
-        hour: '2-digit', 
-        minute: '2-digit' 
-      });
-      
-      // Calculate total pages read
-      const totalPagesRead = end - start + 1;
+
+  // Calculate total pages read
+  const totalPagesRead = start === 0 ? end - start - 1 : end - start;
       
       // Get current page after log (snapshot)
       const currentPageAfterLog = Math.max(end, bookData.current_page);
