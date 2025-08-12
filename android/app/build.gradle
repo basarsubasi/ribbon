@@ -86,13 +86,13 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'tr.com.basarsubasi.ribbonbeta'
+    namespace 'tr.com.basarsubasi.ribbon'
     defaultConfig {
-        applicationId 'tr.com.basarsubasi.ribbonbeta'
+        applicationId 'tr.com.basarsubasi.ribbon'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
-        versionName "0.0.1"
+        versionName "1.0.0"
     }
     signingConfigs {
         debug {

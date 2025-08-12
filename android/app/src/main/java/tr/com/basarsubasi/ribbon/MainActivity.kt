@@ -1,4 +1,4 @@
-package tr.com.basarsubasi.ribbonbeta
+package tr.com.basarsubasi.ribbon
 
 import android.os.Build
 import android.os.Bundle

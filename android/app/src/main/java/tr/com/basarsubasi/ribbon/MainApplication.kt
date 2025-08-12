@@ -1,4 +1,4 @@
-package tr.com.basarsubasi.ribbonbeta
+package tr.com.basarsubasi.ribbon
 
 import android.app.Application
 import android.content.res.Configuration
