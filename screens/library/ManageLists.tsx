@@ -113,8 +113,9 @@ const ManageLists: React.FC = () => {
             onChangeText={setNewValue}
             placeholder={`New ${titleMap[type].slice(0, -1)}`}
             style={styles.input}
+            autoCapitalize="words"
           />
-          <Button mode="contained" onPress={handleAdd} disabled={!newValue.trim()}>Add</Button>
+          <Button mode="contained" onPress={handleAdd} textColor='white' disabled={!newValue.trim()}>Add</Button>
         </View>
         <Divider style={{ marginVertical: verticalScale(12) }} />
         {loading ? (

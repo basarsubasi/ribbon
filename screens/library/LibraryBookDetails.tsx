@@ -651,10 +651,10 @@ export default function LibraryBookDetails() {
         {/* Authors */}
         <Surface style={[styles.section, { backgroundColor: theme.colors.surface }]} elevation={1}>
           <View style={styles.sectionTitleRow}>
-            <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>
+            <Text variant="titleMedium" style={[styles.sectionTitle, styles.sectionTitleCompact, { color: theme.colors.onSurface }]}>
               {t('addBook.authors')}
             </Text>
-            <IconButton icon="chevron-right" size={20} iconColor={theme.colors.primary} onPress={() => navigation.navigate('ManageLists', { type: 'authors' })} />
+            <IconButton icon="chevron-right" size={20} iconColor={theme.colors.primary} style={styles.sectionTitleIconButton} onPress={() => navigation.navigate('ManageLists', { type: 'authors' })} />
           </View>
           
           
@@ -723,10 +723,10 @@ export default function LibraryBookDetails() {
         {/* Categories */}
         <Surface style={[styles.section, { backgroundColor: theme.colors.surface }]} elevation={1}>
           <View style={styles.sectionTitleRow}>
-            <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>
+            <Text variant="titleMedium" style={[styles.sectionTitle, styles.sectionTitleCompact, { color: theme.colors.onSurface }]}>
               {t('addBook.categories')}
             </Text>
-            <IconButton icon="chevron-right" size={20} iconColor={theme.colors.primary} onPress={() => navigation.navigate('ManageLists', { type: 'categories' })} />
+            <IconButton icon="chevron-right" size={20} iconColor={theme.colors.primary} style={styles.sectionTitleIconButton} onPress={() => navigation.navigate('ManageLists', { type: 'categories' })} />
           </View>
           {/* Chips first */}
           <View style={styles.chipsContainer}>
@@ -794,10 +794,10 @@ export default function LibraryBookDetails() {
         {/* Publishers */}
         <Surface style={[styles.section, { backgroundColor: theme.colors.surface }]} elevation={1}>
           <View style={styles.sectionTitleRow}>
-            <Text variant="titleMedium" style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>
+            <Text variant="titleMedium" style={[styles.sectionTitle, styles.sectionTitleCompact, { color: theme.colors.onSurface }]}>
               {t('addBook.publishers')}
             </Text>
-            <IconButton icon="chevron-right" size={20} iconColor={theme.colors.primary} onPress={() => navigation.navigate('ManageLists', { type: 'publishers' })} />
+            <IconButton icon="chevron-right" size={20} iconColor={theme.colors.primary} style={styles.sectionTitleIconButton} onPress={() => navigation.navigate('ManageLists', { type: 'publishers' })} />
           </View>
           {/* Chips first */}
           <View style={styles.chipsContainer}>
@@ -1026,6 +1026,8 @@ const styles = StyleSheet.create({
   section: { margin: scale(16), marginTop: scale(8), padding: scale(16), borderRadius: scale(12) },
   sectionTitle: { fontWeight: '600', marginBottom: scale(16) },
   sectionTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: scale(16) },
+  sectionTitleCompact: { marginBottom: 0 },
+  sectionTitleIconButton: { margin: 0 },
   input: { marginBottom: scale(12) },
   textArea: { minHeight: scale(80) },
   row: { flexDirection: 'row', gap: scale(12) },
