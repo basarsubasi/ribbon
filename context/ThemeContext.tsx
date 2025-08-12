@@ -19,6 +19,8 @@ const CustomLightTheme = {
     onSurface: '#424242',
     secondary: '#a9d6e5',
     onSecondary: '#212121',
+    calendarBackground: '#FFFFFF',
+    calendarBorder: '#FFFFFF',
     // Add other colors as needed, e.g., tertiary, error, etc.
   },
 };
@@ -38,6 +40,8 @@ const CustomDarkTheme = {
     onSurface: '#E0E0E0',
     secondary: '#6b9eaf',
     onSecondary: '#FFFFFF',
+    calendarBackground: '#212121ff',
+    calendarBorder: '#121212',
     // Add other colors as needed
   },
 };

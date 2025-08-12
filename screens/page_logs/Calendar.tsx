@@ -445,6 +445,8 @@ export default function Calendar() {
             height={scale(28)} 
             primaryColor={theme.colors.primary} 
             accentColor={theme.colors.onSurface}
+            calendarBackground={theme.colors.calendarBackground}
+            calendarBorder={theme.colors.calendarBorder}
           />
           <Text variant="headlineSmall" style={[styles.headerTitle, { color: theme.colors.primary }]}>
             calendar

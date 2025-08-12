@@ -7,6 +7,8 @@ interface Props {
   primaryColor?: string;
   secondaryColor?: string;
   accentColor?: string;
+  calendarBackground?: string;
+  calendarBorder?: string;
 }
 
 const CalendarIcon: React.FC<Props> = ({
@@ -14,13 +16,15 @@ const CalendarIcon: React.FC<Props> = ({
   height = 48,
   primaryColor = '#6200EE',
   secondaryColor = '#BB86FC',
-  accentColor = '#3700B3'
+  accentColor = '#3700B3',
+  calendarBackground = '#FFFFFF',
+  calendarBorder = '#FFFFFF'
 }) => (
   <Svg width={width} height={height} viewBox="0 0 1024 1024" fill="none">
     {/* Calendar body - white background */}
     <Path
       d="M167.8 870.2V198.5C167.8 172.1 189.4 150.5 215.8 150.5H807.2C833.6 150.5 855.2 172.1 855.2 198.5V870.2C855.2 896.6 833.6 918.2 807.2 918.2H215.8C189.4 918.2 167.8 896.6 167.8 870.2Z"
-      fill="white"
+      fill={calendarBackground}
     />
     
     
@@ -76,31 +80,31 @@ const CalendarIcon: React.FC<Props> = ({
     {/* Calendar binding rings */}
     <Path
       d="M277.7 134.3H323.7V237.6H277.7V134.3ZM418.6 134.3H464.6V237.6H418.6V134.3ZM559.8 134.3H605.8V237.6H559.8V134.3ZM700.1 134.3H746.1V237.6H700.1V134.3Z"
-      fill={primaryColor}
+      fill={calendarBackground}
     />
     
     {/* Calendar outline */}
     <Path
       d="M807.2 928.2H215.8C183.8 928.2 157.8 902.2 157.8 870.2V182.3C157.8 150.3 183.8 124.3 215.8 124.3H807.2C839.2 124.3 865.2 150.3 865.2 182.3V870.2C865.2 902.2 839.2 928.2 807.2 928.2ZM215.8 144.3C194.8 144.3 177.8 161.3 177.8 182.3V870.2C177.8 891.2 194.8 908.2 215.8 908.2H807.2C828.2 908.2 845.2 891.2 845.2 870.2V182.3C845.2 161.3 828.2 144.3 807.2 144.3H215.8Z"
-      fill={accentColor}
+      fill={calendarBorder}
     />
     
     {/* Calendar top binding posts */}
     <Path
       d="M300.9 223C295.4 223 290.9 218.5 290.9 213V88.1C290.9 82.6 295.4 78.1 300.9 78.1C306.4 78.1 310.9 82.6 310.9 88.1V213C310.9 218.5 306.4 223 300.9 223Z"
-      fill={accentColor}
+      fill={calendarBorder}
     />
     <Path
       d="M441.6 223C436.1 223 431.6 218.5 431.6 213V88.1C431.6 82.6 436.1 78.1 441.6 78.1C447.1 78.1 451.6 82.6 451.6 88.1V213C451.6 218.5 447.1 223 441.6 223Z"
-      fill={accentColor}
+      fill={calendarBorder}
     />
     <Path
       d="M582.4 223C576.9 223 572.4 218.5 572.4 213V88.1C572.4 82.6 576.9 78.1 582.4 78.1C587.9 78.1 592.4 82.6 592.4 88.1V213C592.4 218.5 587.9 223 582.4 223Z"
-      fill={accentColor}
+      fill={calendarBorder}
     />
     <Path
       d="M723.1 223C717.6 223 713.1 218.5 713.1 213V88.1C713.1 82.6 717.6 78.1 723.1 78.1C728.6 78.1 733.1 82.6 733.1 88.1V213C733.1 218.5 728.6 223 723.1 223Z"
-      fill={accentColor}
+      fill={calendarBorder}
     />
   </Svg>
 );
