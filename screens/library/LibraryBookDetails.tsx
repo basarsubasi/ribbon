@@ -350,14 +350,13 @@ export default function LibraryBookDetails() {
       // Update the book
       await db.runAsync(`
         UPDATE books 
-        SET book_type = ?, title = ?, cover_url = ?, cover_path = ?, 
+        SET book_type = ?, title = ?, cover_path = ?, 
             number_of_pages = ?, isbn = ?, year_published = ?, 
             current_page = ?, review = ?, notes = ?, stars = ?, price = ?
         WHERE book_id = ?
       `, [
         bookType,
         title.trim(),
-        coverUrl || null,
         (coverPath && !coverPath.startsWith('http')) ? coverPath : null,
         Number(numberOfPages),
         isbnValue.trim() || null,
