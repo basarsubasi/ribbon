@@ -7,6 +7,7 @@ interface SettingsIconProps {
   primaryColor?: string;
   secondaryColor?: string;
   accentColor?: string;
+  backgroundColor?: string;
 }
 
 const SettingsIcon: React.FC<SettingsIconProps> = ({
@@ -14,7 +15,8 @@ const SettingsIcon: React.FC<SettingsIconProps> = ({
   height = 64,
   primaryColor = '#6200EE',
   secondaryColor = '#BB86FC',
-  accentColor = '#3700B3'
+  accentColor = '#3700B3',
+  backgroundColor = '#FFFFFF'
 }) => {
   // Rectangular-tooth gear parameters
   const center = 512;
@@ -56,7 +58,7 @@ const SettingsIcon: React.FC<SettingsIconProps> = ({
           cx={center}
           cy={center}
           r={holeRadius}
-          fill={secondaryColor}
+          fill={backgroundColor}
           stroke="#322E63"
           strokeWidth={32}
         />

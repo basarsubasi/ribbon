@@ -92,8 +92,10 @@ export default function Settings() {
                 width={scale(40)} 
                 height={scale(40)} 
                 primaryColor={theme.colors.primary}
+
                 secondaryColor={theme.colors.primaryContainer}
                 accentColor={theme.colors.primary}
+                backgroundColor={theme.colors.background}
               />
               <Text variant="headlineLarge" style={[styles.appName, { color: theme.colors.primary }]}>
                 {t('settings.title')}
@@ -105,9 +107,10 @@ export default function Settings() {
         <View style={styles.content}>
           {/* Preferences Section */}
           <View style={styles.section}>
-            <Text style={[styles.categoryTitle, { color: theme.colors.onBackground }]}>
-              <Ionicons name="options-outline" size={scale(18)} /> Preferences
-            </Text>
+            <View style={styles.categoryTitleRow}>
+              <Ionicons name="options-outline" size={scale(18)} color={theme.colors.onBackground} style={styles.categoryTitleIcon} />
+              <Text style={[styles.categoryTitleText, { color: theme.colors.onBackground }]}>Preferences</Text>
+            </View>
             
             {/* Language Card */}
             <Card style={[styles.settingCard, { backgroundColor: theme.colors.surface }]} elevation={2}>
@@ -245,9 +248,10 @@ export default function Settings() {
 
           {/* Data Management Section */}
           <View style={styles.section}>
-            <Text style={[styles.categoryTitle, { color: theme.colors.onBackground }]}>
-              <Ionicons name="server-outline" size={scale(18)} /> Data Management
-            </Text>
+            <View style={styles.categoryTitleRow}>
+              <Ionicons name="server-outline" size={scale(18)} color={theme.colors.onBackground} style={styles.categoryTitleIcon} />
+              <Text style={[styles.categoryTitleText, { color: theme.colors.onBackground }]}>Data Management</Text>
+            </View>
             
             {/* Book Covers Card */}
             <Card style={[styles.settingCard, { backgroundColor: theme.colors.surface }]} elevation={2}>
@@ -335,9 +339,10 @@ export default function Settings() {
 
           {/* About Section */}
           <View style={styles.section}>
-            <Text style={[styles.categoryTitle, { color: theme.colors.onBackground }]}>
-              <Ionicons name="information-circle-outline" size={scale(18)} /> About
-            </Text>
+            <View style={styles.categoryTitleRow}>
+              <Ionicons name="information-circle-outline" size={scale(18)} color={theme.colors.onBackground} style={styles.categoryTitleIcon} />
+              <Text style={[styles.categoryTitleText, { color: theme.colors.onBackground }]}>About</Text>
+            </View>
             
             {/* Source Code Card */}
             <Card style={[styles.settingCard, { backgroundColor: theme.colors.surface }]} elevation={2}>
@@ -418,6 +423,19 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: verticalScale(16),
     paddingHorizontal: scale(4),
+  },
+  categoryTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: verticalScale(16),
+    paddingHorizontal: scale(4),
+  },
+  categoryTitleIcon: {
+    marginRight: scale(8),
+  },
+  categoryTitleText: {
+    fontSize: scale(20),
+    fontWeight: '600',
   },
   settingCard: {
     marginBottom: verticalScale(12),

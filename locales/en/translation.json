@@ -187,6 +187,7 @@
     "bookCover": "Book Cover",
     "addCover": "Add Cover",
     "removeCover": "Remove Cover",
+    "changeCover": "Change Cover",
     "selectImage": "Select Image",
     "selectImageMessage": "Choose how to add the book cover",
     "camera": "Camera",
