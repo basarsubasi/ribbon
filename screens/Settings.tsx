@@ -142,14 +142,14 @@ export default function Settings() {
                   onDismiss={() => setLanguageMenuVisible(false)}
                   anchor={
                     <Button
-                      mode="outlined"
+                      mode="contained"
                       onPress={() => setLanguageMenuVisible(true)}
                       style={styles.selectButton}
                       contentStyle={styles.buttonContent}
                     >
                       <View style={styles.buttonInner}>
-                        <Text style={styles.buttonLabel}>{getLanguageDisplayName(language)}</Text>
-                        <Ionicons name="chevron-down" size={scale(16)} style={styles.trailingIcon} />
+                        <Text style={[styles.buttonLabel, styles.buttonLabelInverse]}>{getLanguageDisplayName(language)}</Text>
+                        <Ionicons name="chevron-down" size={scale(16)} color="#FFFFFF" style={styles.trailingIcon} />
                       </View>
                     </Button>
                   }
@@ -195,14 +195,14 @@ export default function Settings() {
                   onDismiss={() => setDateFormatMenuVisible(false)}
                   anchor={
                     <Button
-                      mode="outlined"
+                      mode="contained"
                       onPress={() => setDateFormatMenuVisible(true)}
                       style={styles.selectButton}
                       contentStyle={styles.buttonContent}
                     >
                       <View style={styles.buttonInner}>
-                        <Text style={styles.buttonLabel}>{getDateFormatDisplayName(dateFormat)}</Text>
-                        <Ionicons name="chevron-down" size={scale(16)} style={styles.trailingIcon} />
+                        <Text style={[styles.buttonLabel, styles.buttonLabelInverse]}>{getDateFormatDisplayName(dateFormat)}</Text>
+                        <Ionicons name="chevron-down" size={scale(16)} color="#FFFFFF" style={styles.trailingIcon} />
                       </View>
                     </Button>
                   }
@@ -252,14 +252,14 @@ export default function Settings() {
                   onDismiss={() => setThemeMenuVisible(false)}
                   anchor={
                     <Button
-                      mode="outlined"
+                      mode="contained"
                       onPress={() => setThemeMenuVisible(true)}
                       style={styles.selectButton}
                       contentStyle={styles.buttonContent}
                     >
                       <View style={styles.buttonInner}>
-                        <Text style={styles.buttonLabel}>{getThemeDisplayName(appTheme)}</Text>
-                        <Ionicons name="chevron-down" size={scale(16)} style={styles.trailingIcon} />
+                        <Text style={[styles.buttonLabel, styles.buttonLabelInverse]}>{getThemeDisplayName(appTheme)}</Text>
+                        <Ionicons name="chevron-down" size={scale(16)} color="#FFFFFF" style={styles.trailingIcon} />
                       </View>
                     </Button>
                   }
@@ -347,25 +347,25 @@ export default function Settings() {
                 </View>
                 <View style={styles.buttonRow}>
                   <Button
-                    mode="outlined"
+                    mode="contained"
                     onPress={() => exportDatabase(dateFormat, t)}
                     style={[styles.actionButton, styles.halfButton]}
                     contentStyle={styles.buttonContent}
                   >
                     <View style={styles.buttonInner}>
-                      <Ionicons name="download" size={scale(16)} style={styles.leadingIcon} />
-                      <Text style={styles.buttonLabel}>{t('settings.export')}</Text>
+                      <Ionicons name="share-outline" size={scale(16)} color="#FFFFFF" style={styles.leadingIcon} />
+                      <Text style={[styles.buttonLabel, styles.buttonLabelInverse]}>{t('settings.export')}</Text>
                     </View>
                   </Button>
                   <Button
-                    mode="outlined"
+                    mode="contained"
                     onPress={() => importDatabase(t)}
                     style={[styles.actionButton, styles.halfButton]}
                     contentStyle={styles.buttonContent}
                   >
                     <View style={styles.buttonInner}>
-                      <Ionicons name="cloud-upload" size={scale(16)} style={styles.leadingIcon} />
-                      <Text style={styles.buttonLabel}>{t('settings.import')}</Text>
+                      <Ionicons name="download-outline" size={scale(16)} color="#FFFFFF" style={styles.leadingIcon} />
+                      <Text style={[styles.buttonLabel, styles.buttonLabelInverse]}>{t('settings.import')}</Text>
                     </View>
                   </Button>
                 </View>
@@ -384,7 +384,7 @@ export default function Settings() {
               <Card.Content style={styles.cardContent}>
                 <View style={styles.settingHeader}>
                   <View style={styles.settingIcon}>
-                    <Ionicons name="logo-github" size={scale(20)} color={theme.colors.primary} />
+                    <Ionicons name="code-slash" size={scale(20)} color={theme.colors.primary} />
                   </View>
                   <View style={styles.settingInfo}>
                     <Text style={[styles.settingTitle, { color: theme.colors.onSurface }]}>
@@ -396,14 +396,14 @@ export default function Settings() {
                   </View>
                 </View>
                 <Button
-                  mode="outlined"
+                  mode="contained"
                   onPress={handleGitHubPress}
                   style={styles.actionButton}
                   contentStyle={styles.buttonContent}
                 >
                   <View style={styles.buttonInner}>
-                    <Ionicons name="logo-github" size={scale(18)} style={styles.leadingIcon} />
-                    <Text style={styles.buttonLabel}>GitHub</Text>
+                    <Ionicons name="logo-github" size={scale(18)} color="#FFFFFF" style={styles.leadingIcon} />
+                    <Text style={[styles.buttonLabel, styles.buttonLabelInverse]}>GitHub</Text>
                   </View>
                 </Button>
               </Card.Content>
