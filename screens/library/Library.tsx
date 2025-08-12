@@ -979,6 +979,7 @@ const styles = StyleSheet.create({
 
   filterChip: {
     marginLeft: scale(8),
+    marginBottom: scale(8),
     flexShrink: 0,
   },
   filterChipText: {
