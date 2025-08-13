@@ -31,6 +31,7 @@ Attach notes to your books and your reading sessions individually
 Log your readings to your calendar, no more phisical bookmarks!
 
 💾 **Easy Database Backup & Restoration**
+
 Backup and restore your entire database with a single tap!
 
 ## 🌍 Languages
