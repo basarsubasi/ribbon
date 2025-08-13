@@ -133,6 +133,7 @@
   },
   "addBook": {
     "bookType": "Book Type",
+    "basicInfo": "Book Details",
 
     "paperback": "Paperback",
     "hardcover": "Hardcover",
