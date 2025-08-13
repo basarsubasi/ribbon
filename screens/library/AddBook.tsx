@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { 
   View, 
   StyleSheet, 
-  ScrollView, 
   Alert,
   TouchableOpacity,
   Image,
   Dimensions
 } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import {
   Text,
   TextInput,
@@ -36,6 +36,7 @@ import {
   getCoverImageUri,
   initializeImageDirectories 
 } from '../../utils/imageUtils';
+import ImagePickerModal from '../../components/ImagePickerModal';
 
 type AddBookRouteProp = RouteProp<LibraryStackParamList, 'AddBook'>;
 type AddBookNavigationProp = StackNavigationProp<LibraryStackParamList, 'AddBook'>;
@@ -81,6 +82,7 @@ export default function AddBook() {
   const [price, setPrice] = useState('');
   const [coverImage, setCoverImage] = useState<string>('');
   const [coverUrl, setCoverUrl] = useState<string>('');
+  const [imagePickerModalVisible, setImagePickerModalVisible] = useState(false);
   
   // Chip states
   const [authors, setAuthors] = useState<string[]>([]);
@@ -186,16 +188,7 @@ export default function AddBook() {
       Alert.alert(t('addBook.permissionTitle'), t('addBook.permissionMessage'));
       return;
     }
-
-    Alert.alert(
-      t('addBook.selectImage'),
-      t('addBook.selectImageMessage'),
-      [
-        { text: t('addBook.camera'), onPress: openCamera },
-        { text: t('addBook.gallery'), onPress: openGallery },
-        { text: t('common.cancel'), style: 'cancel' }
-      ]
-    );
+  setImagePickerModalVisible(true);
   };
 
   const openCamera = async () => {
@@ -515,10 +508,13 @@ export default function AddBook() {
   };
 
   return (
-    <ScrollView 
+    <KeyboardAwareScrollView
       style={[styles.container, { backgroundColor: theme.colors.background }]}
       contentContainerStyle={styles.scrollContent}
       showsVerticalScrollIndicator={false}
+      enableOnAndroid
+      extraScrollHeight={scale(60)}
+      keyboardShouldPersistTaps="handled"
     >
       {/* Cover Section (Surface styled) */}
       {renderCoverSection()}
@@ -901,7 +897,13 @@ export default function AddBook() {
           )}
         </Button>
       </View>
-    </ScrollView>
+      <ImagePickerModal
+        visible={imagePickerModalVisible}
+        onDismiss={() => setImagePickerModalVisible(false)}
+        onCamera={openCamera}
+        onGallery={openGallery}
+      />
+    </KeyboardAwareScrollView>
   );
 }
 
