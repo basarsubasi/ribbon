@@ -425,7 +425,7 @@ export default function Calendar() {
                   variant="bodySmall" 
                   style={[styles.progressText, { color: theme.colors.onSurfaceVariant }]}
                 >
-                  {completionText}
+                   ({item.current_page_after_log}/{item.number_of_pages}) {completionText}
                 </Text>
               </View>
             </View>
