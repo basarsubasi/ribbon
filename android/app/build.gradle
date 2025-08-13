@@ -100,7 +100,7 @@ android {
         applicationId 'tr.com.basarsubasi.ribbon'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
+        versionCode 2
         versionName "1.0.0"
     }
     signingConfigs {
