@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Image, ScrollView, Alert, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, Image, Alert, TouchableOpacity } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import {
   Text,
   Card,
@@ -222,7 +223,14 @@ export default function LogPages() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
+      <KeyboardAwareScrollView
+        style={styles.content}
+        contentContainerStyle={styles.contentContainer}
+        enableOnAndroid
+        extraScrollHeight={scale(60)}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
         {/* Book Info Card */}
         <Card style={[styles.bookCard, { backgroundColor: theme.colors.surface }]}>
           <Card.Content style={styles.bookContent}>
@@ -369,7 +377,7 @@ export default function LogPages() {
             {saving ? 'Saving...' : 'Save Reading Log'}
           </Button>
         </Surface>
-      </ScrollView>
+  </KeyboardAwareScrollView>
 
       {/* Date Picker Modal */}
       <Portal>

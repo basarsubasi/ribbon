@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { 
   View, 
   StyleSheet, 
-  ScrollView, 
   Alert,
   TouchableOpacity,
   Image,
   Dimensions
 } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import {
   Text,
   TextInput,
@@ -250,8 +250,7 @@ export default function LibraryBookDetails() {
       Alert.alert(t('addBook.permissionTitle'), t('addBook.permissionMessage'));
       return;
     }
-
-    setImagePickerModalVisible(true);
+  setImagePickerModalVisible(true);
   };
 
   const openCamera = async () => {
@@ -546,10 +545,13 @@ export default function LibraryBookDetails() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <ScrollView 
+      <KeyboardAwareScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        enableOnAndroid
+        extraScrollHeight={scale(60)}
+        keyboardShouldPersistTaps="handled"
       >
         {/* Book Cover Section */}
         <Surface style={[styles.section, { backgroundColor: theme.colors.surface }]} elevation={1}>
@@ -1005,7 +1007,7 @@ export default function LibraryBookDetails() {
             </Button>
           </View>
         </View>
-      </ScrollView>
+  </KeyboardAwareScrollView>
       
       {/* Image Picker Modal */}
       <ImagePickerModal

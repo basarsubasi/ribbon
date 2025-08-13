@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Image, ScrollView, Alert, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, Image, Alert, TouchableOpacity } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import {
   Text,
   Card,
@@ -10,7 +11,8 @@ import {
   Chip,
   ActivityIndicator,
   Modal,
-  Portal
+  Portal,
+  ProgressBar
 } from 'react-native-paper';
 import { useTheme } from '../../context/ThemeContext';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -276,7 +278,7 @@ export default function LogDetails() {
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+  <KeyboardAwareScrollView style={styles.content} showsVerticalScrollIndicator={false} enableOnAndroid extraScrollHeight={scale(60)} keyboardShouldPersistTaps="handled">
         {/* Book Card */}
         <Card style={[styles.bookCard, { backgroundColor: theme.colors.surface }]}>
           <Card.Content style={styles.bookContent}>
@@ -333,9 +335,18 @@ export default function LogDetails() {
                 </View>
               )}
 
-              <Text variant="bodySmall" style={[styles.progressText, { color: theme.colors.onSurfaceVariant }]}>
-                Current Progress: {bookData.current_page}/{bookData.number_of_pages} pages
-              </Text>
+              {logData && (
+                <View style={styles.progressContainer}> 
+                  <ProgressBar 
+                    progress={logData.current_page_after_log / bookData.number_of_pages}
+                    color={theme.colors.primary}
+                    style={styles.progressBar}
+                  />
+                  <Text variant="bodySmall" style={[styles.progressText, { color: theme.colors.onSurfaceVariant }]}> 
+                    {Math.round((logData.current_page_after_log / bookData.number_of_pages) * 100)}% ({logData.current_page_after_log}/{bookData.number_of_pages})
+                  </Text>
+                </View>)
+              }
             </View>
           </Card.Content>
         </Card>
@@ -438,7 +449,7 @@ export default function LogDetails() {
             </Button>
           </View>
         </Surface>
-      </ScrollView>
+  </KeyboardAwareScrollView>
 
       {/* Date Picker Modal - copied from LogPages */}
       <Portal>
@@ -640,6 +651,15 @@ const styles = StyleSheet.create({
   categoryChipText: {
     fontSize: scale(11),
     lineHeight: scale(14),
+  },
+  progressContainer: {
+    marginTop: verticalScale(8),
+    marginBottom: verticalScale(4),
+  },
+  progressBar: {
+    height: verticalScale(6),
+    borderRadius: scale(4),
+    marginBottom: verticalScale(4),
   },
   progressText: {
     fontWeight: '500',
